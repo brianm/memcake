@@ -5,8 +5,9 @@ import java.nio.channels.CompletionHandler;
 import java.util.Map;
 import java.util.function.Consumer;
 
-interface Command  {
+interface Command {
     Consumer<Map<Integer, Response>> createConsumer(int opaque);
+
     void write(Connection conn, Integer opaque);
 
     static void writeBuffer(final Connection conn, final ByteBuffer buffer) {

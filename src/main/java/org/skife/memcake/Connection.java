@@ -20,7 +20,7 @@ public class Connection implements AutoCloseable {
 
     private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
 
-    private final ConcurrentMap<Integer, Consumer<Map<Integer, Response> >> waiting = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, Consumer<Map<Integer, Response>>> waiting = new ConcurrentHashMap<>();
     private final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
@@ -84,7 +84,8 @@ public class Connection implements AutoCloseable {
         new Response(this, buffer).readBody();
     }
 
-    public static CompletableFuture<Connection> open(SocketAddress addr, AsynchronousChannelGroup group) throws IOException {
+    public static CompletableFuture<Connection> open(SocketAddress addr,
+                                                     AsynchronousChannelGroup group) throws IOException {
         AsynchronousSocketChannel channel = AsynchronousSocketChannel.open(group);
         final CompletableFuture<Connection> cf = new CompletableFuture<>();
         channel.connect(addr, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {

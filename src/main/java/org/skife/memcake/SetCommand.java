@@ -1,7 +1,6 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.CompletionHandler;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -35,13 +34,12 @@ class SetCommand implements Command {
         int bodyLength = 8 + key.length + value.length;
         ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
 
-
         buffer.put(Bits.CLIENT_MAGIC);
         buffer.put(Opcodes.set);
-        buffer.putChar((char)key.length);
-        buffer.put((byte)0x08); // extra length
-        buffer.put((byte)0x00); // data type
-        buffer.putChar((char)0x00); // vbucket
+        buffer.putChar((char) key.length);
+        buffer.put((byte) 0x08); // extra length
+        buffer.put((byte) 0x00); // data type
+        buffer.putChar((char) 0x00); // vbucket
         buffer.putInt(bodyLength);
         buffer.putInt(opaque);
         buffer.putLong(0); //cas
