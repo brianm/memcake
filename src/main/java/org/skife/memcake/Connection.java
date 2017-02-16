@@ -129,13 +129,13 @@ public class Connection implements AutoCloseable {
         return result;
     }
 
-//    public CompletableFuture<Value> get(byte[] key, long timeout, TimeUnit unit) {
-//        checkState();
-//        CompletableFuture<Value> result = new CompletableFuture<>();
-//        queuedRequests.add(new GetCommand(result, key, timeout, unit));
-//        maybeWrite();
-//        return result;
-//    }
+    public CompletableFuture<Value> get(byte[] key) {
+        checkState();
+        CompletableFuture<Value> result = new CompletableFuture<>();
+        queuedRequests.add(new GetCommand(result, key));
+        maybeWrite();
+        return result;
+    }
 
     AsynchronousSocketChannel getChannel() {
         return channel;

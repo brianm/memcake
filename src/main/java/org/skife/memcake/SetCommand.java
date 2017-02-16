@@ -25,20 +25,24 @@ class SetCommand implements Command {
     public Consumer<Map<Integer, Response>> createConsumer(int opaque) {
         return (s) -> {
             Response r = s.get(opaque);
+            s.remove(opaque);
             result.complete(new Version(r.getVersion()));
         };
     }
 
     @Override
     public void write(Connection conn, Integer opaque) {
-        ByteBuffer buffer = ByteBuffer.allocate(24 + 8 + key.length + value.length);
+        int bodyLength = 8 + key.length + value.length;
+        ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
+
+
         buffer.put(Bits.CLIENT_MAGIC);
         buffer.put(Opcodes.set);
         buffer.putChar((char)key.length);
         buffer.put((byte)0x08); // extra length
         buffer.put((byte)0x00); // data type
         buffer.putChar((char)0x00); // vbucket
-        buffer.putInt(8 + key.length + value.length);
+        buffer.putInt(bodyLength);
         buffer.putInt(opaque);
         buffer.putLong(0); //cas
         buffer.putInt(flags);
@@ -47,24 +51,6 @@ class SetCommand implements Command {
         buffer.put(value);
 
         buffer.flip();
-        writeBuffer(conn, buffer);
-    }
-
-    private void writeBuffer(final Connection conn, final ByteBuffer buffer) {
-        conn.getChannel().write(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {
-            @Override
-            public void completed(Integer result, ByteBuffer attachment) {
-                if (attachment.remaining() != 0) {
-                    writeBuffer(conn, buffer);
-                    return;
-                }
-                conn.finishWrite();
-            }
-
-            @Override
-            public void failed(Throwable exc, ByteBuffer attachment) {
-                conn.networkFailure(exc);
-            }
-        });
+        Command.writeBuffer(conn, buffer);
     }
 }

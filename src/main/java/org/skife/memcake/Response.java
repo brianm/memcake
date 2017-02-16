@@ -17,6 +17,9 @@ public class Response {
     private final long cas;
     private final ByteBuffer bodyBuffer;
     private final char status;
+    private Integer flags;
+    private byte[] value;
+    private byte[] key;
 
     public Response(Connection conn, ByteBuffer buf) {
         this.conn = conn;
@@ -74,7 +77,14 @@ public class Response {
     }
 
     private void readGetBody(ByteBuffer bodyBuffer) {
-
+        this.flags = bodyBuffer.getInt();
+        if (this.keyLength != 0) {
+            this.key = new byte[keyLength];
+            bodyBuffer.get(key);
+        }
+        this.value = new byte[this.totalBodyLength - this.keyLength - this.extrasLength];
+        bodyBuffer.get(this.value);
+        conn.receive(this);
     }
 
     public int getOpaque() {
@@ -83,5 +93,13 @@ public class Response {
 
     public long getVersion() {
         return cas;
+    }
+
+    public Integer getFlags() {
+        return flags;
+    }
+
+    public byte[] getValue() {
+        return value;
     }
 }
