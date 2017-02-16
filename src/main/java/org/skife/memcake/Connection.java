@@ -120,6 +120,18 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    AsynchronousSocketChannel getChannel() {
+        return channel;
+    }
+
+    void receive(Response response) {
+        scoreboard.put(response.getOpaque(), response);
+        Consumer<Map<Integer, Response>> sc = waiting.get(response.getOpaque());
+        if (sc != null) {
+            sc.accept(scoreboard);
+        }
+    }
+
     /* the main api of this thing */
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
@@ -136,17 +148,5 @@ public class Connection implements AutoCloseable {
         queuedRequests.add(new GetCommand(result, key));
         maybeWrite();
         return result;
-    }
-
-    AsynchronousSocketChannel getChannel() {
-        return channel;
-    }
-
-    void receive(Response response) {
-        scoreboard.put(response.getOpaque(), response);
-        Consumer<Map<Integer, Response>> sc = waiting.get(response.getOpaque());
-        if (sc != null) {
-            sc.accept(scoreboard);
-        }
     }
 }
