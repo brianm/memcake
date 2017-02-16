@@ -3,7 +3,7 @@ package org.skife.memcake;
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
-public class Response {
+class Response {
     private final Connection conn;
     private final ByteBuffer headerBuffer;
 
@@ -21,7 +21,7 @@ public class Response {
     private byte[] value;
     private byte[] key;
 
-    public Response(Connection conn, ByteBuffer buf) {
+    Response(Connection conn, ByteBuffer buf) {
         this.conn = conn;
         headerBuffer = buf;
         magic = buf.get();
@@ -37,7 +37,7 @@ public class Response {
         headerBuffer.clear();
     }
 
-    public void readBody() {
+    void readBody() {
         conn.getChannel().read(bodyBuffer, bodyBuffer, new CompletionHandler<Integer, ByteBuffer>() {
             @Override
             public void completed(Integer bytesRead, ByteBuffer bodyBuffer) {
@@ -87,19 +87,19 @@ public class Response {
         conn.receive(this);
     }
 
-    public int getOpaque() {
+    int getOpaque() {
         return opaque;
     }
 
-    public long getVersion() {
+    long getVersion() {
         return cas;
     }
 
-    public Integer getFlags() {
+    Integer getFlags() {
         return flags;
     }
 
-    public byte[] getValue() {
+    byte[] getValue() {
         return value;
     }
 }
