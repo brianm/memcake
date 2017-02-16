@@ -34,11 +34,11 @@ public class Connection implements AutoCloseable {
         this.channel = channel;
     }
 
-    void maybeWrite() {
+    private void maybeWrite() {
         if (writing.compareAndSet(false, true)) {
             // write next outbound command
             // we rely on writeFinished() being called to unset this flag
-            Command c = queuedRequests.poll();
+            final Command c = queuedRequests.poll();
             if (c == null) {
                 writing.set(false);
                 return;
@@ -86,12 +86,12 @@ public class Connection implements AutoCloseable {
 
     public static CompletableFuture<Connection> open(SocketAddress addr,
                                                      AsynchronousChannelGroup group) throws IOException {
-        AsynchronousSocketChannel channel = AsynchronousSocketChannel.open(group);
+        final AsynchronousSocketChannel channel = AsynchronousSocketChannel.open(group);
         final CompletableFuture<Connection> cf = new CompletableFuture<>();
         channel.connect(addr, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
             @Override
             public void completed(Void result, AsynchronousSocketChannel channel) {
-                Connection conn = new Connection(channel);
+                final Connection conn = new Connection(channel);
                 conn.nextResponse(ByteBuffer.allocate(24));
                 cf.complete(conn);
             }
