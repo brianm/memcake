@@ -23,18 +23,17 @@ class Response {
 
     Response(Connection conn, ByteBuffer buf) {
         this.conn = conn;
-        headerBuffer = buf;
-        magic = buf.get();
-        opcode = buf.get();
-        keyLength = buf.getChar();
-        extrasLength = buf.get();
-        dataType = buf.get();
-        status = buf.getChar();
-        totalBodyLength = buf.getInt();
-        opaque = buf.getInt();
-        cas = buf.getLong();
-        bodyBuffer = ByteBuffer.allocate(totalBodyLength);
-        headerBuffer.clear();
+        this.headerBuffer = buf;
+        this.magic = buf.get();
+        this.opcode = buf.get();
+        this.keyLength = buf.getChar();
+        this.extrasLength = buf.get();
+        this.dataType = buf.get();
+        this.status = buf.getChar();
+        this.totalBodyLength = buf.getInt();
+        this.opaque = buf.getInt();
+        this.cas = buf.getLong();
+        this.bodyBuffer = ByteBuffer.allocate(totalBodyLength);
     }
 
     void readBody() {
@@ -58,7 +57,10 @@ class Response {
                         System.err.printf("unhandled opcode: %d\n", opcode);
 
                 }
-                finished();
+
+                // we finished reading body, so start next read loop
+                headerBuffer.clear();
+                conn.nextResponse(headerBuffer);
             }
 
             @Override
@@ -66,10 +68,6 @@ class Response {
                 conn.networkFailure(exc);
             }
         });
-    }
-
-    private void finished() {
-        conn.nextResponse(headerBuffer);
     }
 
     private void readSetBody(ByteBuffer bodyBuffer) {
