@@ -41,7 +41,7 @@ public class MemcachedRule extends ExternalResource {
 
     @Override
     protected void after() {
-        process.getProcess().destroy();
+        process.getProcess().destroyForcibly();
     }
 
     public InetSocketAddress getAddress() {

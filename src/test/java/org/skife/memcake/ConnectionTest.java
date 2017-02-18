@@ -23,13 +23,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ConnectionTest {
 
     @ClassRule
-    public static MemcachedRule mc = new MemcachedRule();
+    public static final MemcachedRule mc = new MemcachedRule();
 
     private Connection c;
 
     @Before
     public void setUp() throws Exception {
         c = Connection.open(mc.getAddress(), AsynchronousSocketChannel.open()).get();
+
+        // yes yes, we use the thing under test to clean up after itself. It works though.
+        c.flush(0).get();
     }
 
     @Property
