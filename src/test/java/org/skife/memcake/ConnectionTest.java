@@ -4,11 +4,11 @@ import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -22,12 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
 
+    @ClassRule
+    public static MemcachedRule mc = new MemcachedRule();
+
     private Connection c;
 
     @Before
     public void setUp() throws Exception {
-        c = Connection.open(new InetSocketAddress("localhost", 11211),
-                            AsynchronousSocketChannel.open()).get();
+        c = Connection.open(mc.getAddress(), AsynchronousSocketChannel.open()).get();
     }
 
     @Property
