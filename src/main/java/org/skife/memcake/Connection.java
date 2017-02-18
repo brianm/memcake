@@ -3,6 +3,7 @@ package org.skife.memcake;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Map;
@@ -12,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -29,9 +32,40 @@ public class Connection implements AutoCloseable {
     private final AtomicBoolean writing = new AtomicBoolean(false);
 
     private final AsynchronousSocketChannel channel;
+    private final ScheduledExecutorService timeoutExecutor;
+    private final long defaultTimeout;
+    private final TimeUnit defaultTimeoutUnit;
 
-    private Connection(AsynchronousSocketChannel channel) {
+    private Connection(AsynchronousSocketChannel channel,
+                       ScheduledExecutorService timeoutExecutor,
+                       long defaultTimeout,
+                       TimeUnit defaultTimeoutUnit) {
         this.channel = channel;
+        this.timeoutExecutor = timeoutExecutor;
+        this.defaultTimeout = defaultTimeout;
+        this.defaultTimeoutUnit = defaultTimeoutUnit;
+    }
+
+    public static CompletableFuture<Connection> open(SocketAddress addr,
+                                                     AsynchronousSocketChannel channel,
+                                                     ScheduledExecutorService timeoutExecutor,
+                                                     long defaultTimeout,
+                                                     TimeUnit defaultTimeoutUnit) throws IOException {
+        final CompletableFuture<Connection> cf = new CompletableFuture<>();
+        channel.connect(addr, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
+            @Override
+            public void completed(Void result, AsynchronousSocketChannel channel) {
+                final Connection conn = new Connection(channel, timeoutExecutor, defaultTimeout, defaultTimeoutUnit);
+                conn.nextResponse(ByteBuffer.allocate(24));
+                cf.complete(conn);
+            }
+
+            @Override
+            public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
+                cf.completeExceptionally(exc);
+            }
+        });
+        return cf;
     }
 
     private void maybeWrite() {
@@ -57,22 +91,24 @@ public class Connection implements AutoCloseable {
     }
 
     void nextResponse(ByteBuffer headerBuffer) {
-        channel.read(headerBuffer, headerBuffer, new CompletionHandler<Integer, ByteBuffer>() {
-            @Override
-            public void completed(Integer bytesRead, ByteBuffer buffer) {
-                if (buffer.remaining() != 0) {
-                    nextResponse(buffer);
-                    return;
+        if (open.get()) {
+            channel.read(headerBuffer, headerBuffer, new CompletionHandler<Integer, ByteBuffer>() {
+                @Override
+                public void completed(Integer bytesRead, ByteBuffer buffer) {
+                    if (buffer.remaining() != 0) {
+                        nextResponse(buffer);
+                        return;
+                    }
+                    buffer.flip();
+                    processResponseHeader(buffer);
                 }
-                buffer.flip();
-                processResponseHeader(buffer);
-            }
 
-            @Override
-            public void failed(Throwable exc, ByteBuffer attachment) {
-                networkFailure(exc);
-            }
-        });
+                @Override
+                public void failed(Throwable exc, ByteBuffer attachment) {
+                    networkFailure(exc);
+                }
+            });
+        }
     }
 
     void networkFailure(Throwable exc) {
@@ -82,25 +118,6 @@ public class Connection implements AutoCloseable {
 
     private void processResponseHeader(ByteBuffer buffer) {
         new Response(this, buffer).readBody();
-    }
-
-    public static CompletableFuture<Connection> open(SocketAddress addr,
-                                                     AsynchronousSocketChannel channel) throws IOException {
-        final CompletableFuture<Connection> cf = new CompletableFuture<>();
-        channel.connect(addr, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
-            @Override
-            public void completed(Void result, AsynchronousSocketChannel channel) {
-                final Connection conn = new Connection(channel);
-                conn.nextResponse(ByteBuffer.allocate(24));
-                cf.complete(conn);
-            }
-
-            @Override
-            public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
-                cf.completeExceptionally(exc);
-            }
-        });
-        return cf;
     }
 
     private void checkState() {
@@ -113,7 +130,7 @@ public class Connection implements AutoCloseable {
         if (open.compareAndSet(true, false)) {
             try {
                 channel.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // close quietly
             }
         }
@@ -133,43 +150,37 @@ public class Connection implements AutoCloseable {
 
     /* the main api of this thing */
 
-    public CompletableFuture<Optional<Value>> get(byte[] key) {
+
+    private <T> CompletableFuture<T> enqueue(CompletableFuture<T> result, Command c) {
         checkState();
-        CompletableFuture<Optional<Value>> result = new CompletableFuture<>();
-        queuedRequests.add(new GetCommand(result, key));
+        queuedRequests.add(c);
         maybeWrite();
         return result;
+    }
+
+    public CompletableFuture<Optional<Value>> get(byte[] key) {
+        CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
+        return enqueue(cf, new GetCommand(cf, key));
+
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
-        checkState();
         CompletableFuture<Version> result = new CompletableFuture<>();
-        queuedRequests.add(new SetCommand(result, key, flags, expires, value));
-        maybeWrite();
-        return result;
+        return enqueue(result, new SetCommand(result, key, flags, expires, value));
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
-        checkState();
         CompletableFuture<Version> result = new CompletableFuture<>();
-        queuedRequests.add(new AddCommand(result, key, flags, expires, value));
-        maybeWrite();
-        return result;
+        return enqueue(result, new AddCommand(result, key, flags, expires, value));
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
-        checkState();
         CompletableFuture<Version> result = new CompletableFuture<>();
-        queuedRequests.add(new ReplaceCommand(result, key, flags, expires, value));
-        maybeWrite();
-        return result;
+        return enqueue(result, new ReplaceCommand(result, key, flags, expires, value));
     }
 
     public CompletableFuture<Void> flush(int expires) {
-        checkState();
         CompletableFuture<Void> result = new CompletableFuture<>();
-        queuedRequests.add(new FlushCommand(result, expires));
-        maybeWrite();
-        return result;
+        return enqueue(result, new FlushCommand(result, expires));
     }
 }

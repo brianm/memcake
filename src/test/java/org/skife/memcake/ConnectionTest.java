@@ -3,6 +3,7 @@ package org.skife.memcake;
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,13 +30,23 @@ public class ConnectionTest {
     public static final MemcachedRule mc = new MemcachedRule();
 
     private Connection c;
+    private ScheduledExecutorService cron;
 
     @Before
     public void setUp() throws Exception {
-        c = Connection.open(mc.getAddress(), AsynchronousSocketChannel.open()).get();
+        cron = Executors.newScheduledThreadPool(1);
+        c = Connection.open(mc.getAddress(),
+                            AsynchronousSocketChannel.open(),
+                            cron, 1, TimeUnit.SECONDS).get();
 
         // yes yes, we use the thing under test to clean up after itself. It works though.
         c.flush(0).get();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        cron.shutdown();
+        c.close();
     }
 
     @Property
