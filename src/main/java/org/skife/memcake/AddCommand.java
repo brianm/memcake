@@ -6,14 +6,14 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-class SetCommand implements Command {
+public class AddCommand implements Command {
     private final CompletableFuture<Version> result;
     private final byte[] key;
     private final int flags;
     private final int expires;
     private final byte[] value;
 
-    SetCommand(CompletableFuture<Version> result, byte[] key, int flags, int expires, byte[] value) {
+    AddCommand(CompletableFuture<Version> result, byte[] key, int flags, int expires, byte[] value) {
         this.result = result;
         this.key = key;
         this.flags = flags;
@@ -36,7 +36,7 @@ class SetCommand implements Command {
         ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
 
         buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(Opcodes.set);
+        buffer.put(Opcodes.add);
         buffer.putChar((char) key.length);
         buffer.put((byte) 0x08); // extra length
         buffer.put((byte) 0x00); // data type
@@ -51,9 +51,5 @@ class SetCommand implements Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
-    }
-
-    static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
-        conn.receive(response);
     }
 }

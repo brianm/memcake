@@ -3,10 +3,10 @@ package org.skife.memcake;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +45,7 @@ public class Connection implements AutoCloseable {
             }
 
             int opaque = opaques.getAndIncrement();
-            waiting.put(opaque, c.createConsumer(opaque));
+            c.createConsumer(opaque).ifPresent((consumer) -> waiting.put(opaque, consumer));
             c.write(this, opaque);
 
         }
@@ -85,8 +85,7 @@ public class Connection implements AutoCloseable {
     }
 
     public static CompletableFuture<Connection> open(SocketAddress addr,
-                                                     AsynchronousChannelGroup group) throws IOException {
-        final AsynchronousSocketChannel channel = AsynchronousSocketChannel.open(group);
+                                                     AsynchronousSocketChannel channel) throws IOException {
         final CompletableFuture<Connection> cf = new CompletableFuture<>();
         channel.connect(addr, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
             @Override
@@ -134,6 +133,14 @@ public class Connection implements AutoCloseable {
 
     /* the main api of this thing */
 
+    public CompletableFuture<Optional<Value>> get(byte[] key) {
+        checkState();
+        CompletableFuture<Optional<Value>> result = new CompletableFuture<>();
+        queuedRequests.add(new GetCommand(result, key));
+        maybeWrite();
+        return result;
+    }
+
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
         checkState();
         CompletableFuture<Version> result = new CompletableFuture<>();
@@ -142,10 +149,18 @@ public class Connection implements AutoCloseable {
         return result;
     }
 
-    public CompletableFuture<Value> get(byte[] key) {
+    public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
         checkState();
-        CompletableFuture<Value> result = new CompletableFuture<>();
-        queuedRequests.add(new GetCommand(result, key));
+        CompletableFuture<Version> result = new CompletableFuture<>();
+        queuedRequests.add(new AddCommand(result, key, flags, expires, value));
+        maybeWrite();
+        return result;
+    }
+
+    public CompletableFuture<Void> flush(int expires) {
+        checkState();
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        queuedRequests.add(new FlushCommand(result, expires));
         maybeWrite();
         return result;
     }

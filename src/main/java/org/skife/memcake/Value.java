@@ -11,7 +11,7 @@ public class Value {
         this.value = value;
     }
 
-    public Version getCas() {
+    public Version getVersion() {
         return cas;
     }
 

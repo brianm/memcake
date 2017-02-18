@@ -2,26 +2,37 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 class GetCommand implements Command {
 
-    private final CompletableFuture<Value> result;
+    private final CompletableFuture<Optional<Value>> result;
     private final byte[] key;
 
-    GetCommand(CompletableFuture<Value> result, byte[] key) {
+    GetCommand(CompletableFuture<Optional<Value>> result, byte[] key) {
         this.result = result;
         this.key = key;
     }
 
     @Override
-    public Consumer<Map<Integer, Response>> createConsumer(int opaque) {
-        return (s) -> {
+    public Optional<Consumer<Map<Integer, Response>>> createConsumer(int opaque) {
+        return Optional.of((s) -> {
             Response r = s.get(opaque);
             s.remove(opaque);
-            result.complete(new Value(new Version(r.getVersion()), r.getFlags(), r.getValue()));
-        };
+
+            switch (r.getStatus()) {
+                case 0:
+                    result.complete(Optional.of(new Value(new Version(r.getVersion()), r.getFlags(), r.getValue())));
+                    break;
+                case 1:
+                    result.complete(Optional.empty());
+                    break;
+                default:
+                    result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
+            }
+        });
     }
 
     @Override
@@ -40,5 +51,19 @@ class GetCommand implements Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
+    }
+
+
+    static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
+        response.setFlags(bodyBuffer.getInt());
+        if (response.getKeyLength() != 0) {
+            byte[] key = new byte[response.getKeyLength()];
+            bodyBuffer.get(key);
+            response.setKey(key);
+        }
+        byte[] value = new byte[response.getTotalBodyLength() - response.getKeyLength() - response.getExtrasLength()];
+        bodyBuffer.get(value);
+        response.setValue(value);
+        conn.receive(response);
     }
 }
