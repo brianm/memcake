@@ -26,8 +26,18 @@ class SetCommand implements Command {
         return Optional.of((s) -> {
             Response r = s.get(opaque);
             s.remove(opaque);
-            result.complete(new Version(r.getVersion()));
+
+            if (r.getStatus() != 0) {
+                result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
+            }
+            else {
+                result.complete(new Version(r.getVersion()));
+            }
         });
+    }
+
+    protected byte opCode() {
+        return Opcodes.set;
     }
 
     @Override
@@ -36,7 +46,7 @@ class SetCommand implements Command {
         ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
 
         buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(Opcodes.set);
+        buffer.put(opCode());
         buffer.putChar((char) key.length);
         buffer.put((byte) 0x08); // extra length
         buffer.put((byte) 0x00); // data type
@@ -51,9 +61,5 @@ class SetCommand implements Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
-    }
-
-    static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
-        conn.receive(response);
     }
 }

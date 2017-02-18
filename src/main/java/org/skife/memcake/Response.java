@@ -112,22 +112,21 @@ class Response {
                 if (status == 0) {
                     // success, process the body per message type
                     switch (opcode) {
-                        case Opcodes.set:
-                            SetCommand.parseBody(Response.this, conn, bodyBuffer);
-                            break;
                         case Opcodes.get:
-                            GetCommand.parseBody(Response.this, conn, bodyBuffer);
-                            break;
-                        case Opcodes.add:
                             GetCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.flush:
                             FlushCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
+                        case Opcodes.set:
+                        case Opcodes.add:
+                        case Opcodes.replace:
                         default:
+                            // set/add/replace never have bodies
                             conn.receive(Response.this);
                     }
-                } else {
+                }
+                else {
                     // error, body will be textual error description
                     error.set(new String(bodyBuffer.array(), StandardCharsets.US_ASCII));
                     conn.receive(Response.this);

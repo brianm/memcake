@@ -157,6 +157,14 @@ public class Connection implements AutoCloseable {
         return result;
     }
 
+    public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
+        checkState();
+        CompletableFuture<Version> result = new CompletableFuture<>();
+        queuedRequests.add(new ReplaceCommand(result, key, flags, expires, value));
+        maybeWrite();
+        return result;
+    }
+
     public CompletableFuture<Void> flush(int expires) {
         checkState();
         CompletableFuture<Void> result = new CompletableFuture<>();

@@ -6,12 +6,12 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class FlushCommand implements Command {
+class FlushCommand implements Command {
 
     private final CompletableFuture<Void> result;
     private final int expires;
 
-    public FlushCommand(CompletableFuture<Void> result, int expires) {
+    FlushCommand(CompletableFuture<Void> result, int expires) {
         this.result = result;
         this.expires = expires;
     }
@@ -52,7 +52,7 @@ public class FlushCommand implements Command {
 
     }
 
-    public static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
+    static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
         conn.receive(response);
     }
 }
