@@ -72,36 +72,28 @@ public class ConnectionTest {
         }
     }
 
-    @Property(trials = 10)
-    public void ifAddedCannotBeAddedAgain(@Size(min = 1, max = 64) List<Entry> entries) throws Exception {
-        for (Entry entry : entries) {
+    @Property
+    public void ifAddedCannotBeAddedAgain(Entry entry) throws Exception {
+        Version cas = c.add(entry.key(), 0, 0, entry.value()).get();
+        Value val = c.get(entry.key()).get().get();
 
-            Version cas = c.add(entry.key(), 0, 0, entry.value()).get();
-            Value val = c.get(entry.key()).get().get();
+        assertThat(val.getValue()).isEqualTo(entry.value());
+        assertThat(val.getVersion()).isEqualTo(cas);
 
-            assertThat(val.getValue()).isEqualTo(entry.value());
-            assertThat(val.getVersion()).isEqualTo(cas);
+        CompletableFuture<Version> again = c.add(entry.key(), 0, 0, new byte[]{0x00, 0x01});
 
-            CompletableFuture<Version> again = c.add(entry.key(), 0, 0, new byte[]{0x00, 0x01});
-
-            assertThatThrownBy(again::get).hasCauseInstanceOf(StatusException.class);
-
-        }
+        assertThatThrownBy(again::get).hasCauseInstanceOf(StatusException.class);
     }
 
-    @Property(trials = 10)
-    public void replaceMustExistToBeReplaced(@Size(min = 1, max = 64) List<Entry> entries) throws Exception {
-        for (Entry entry : entries) {
+    @Property
+    public void replaceMustExistToBeReplaced(Entry entry) throws Exception {
+        c.add(entry.key(), 0, 0, new byte[]{0x01}).get();
+        c.replace(entry.key(), 0, 0, entry.value()).get();
 
-            c.add(entry.key(), 0, 0, new byte[]{0x01}).get();
-            c.replace(entry.key(), 0, 0, entry.value()).get();
+        c.flush(0).get();
 
-            c.flush(0).get();
-
-            assertThatThrownBy(() -> c.replace(entry.key(), 0, 0, entry.value()).get())
-                    .hasCauseInstanceOf(StatusException.class);
-
-        }
+        assertThatThrownBy(() -> c.replace(entry.key(), 0, 0, entry.value()).get())
+                .hasCauseInstanceOf(StatusException.class);
     }
 
     @Test
