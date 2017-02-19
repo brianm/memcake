@@ -1,6 +1,7 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -12,7 +13,13 @@ class SetCommand extends Command {
     private final int expires;
     private final byte[] value;
 
-    SetCommand(CompletableFuture<Version> result, byte[] key, int flags, int expires, byte[] value, long timeout, TimeUnit unit) {
+    SetCommand(CompletableFuture<Version> result,
+               byte[] key,
+               int flags,
+               int expires,
+               byte[] value,
+               long timeout,
+               TimeUnit unit) {
         super(timeout, unit);
         this.result = result;
         this.key = key;
@@ -23,17 +30,18 @@ class SetCommand extends Command {
 
     @Override
     public Optional<Responder> createResponder(int opaque) {
-        return Optional.of(new Responder((s) -> {
-            Response r = s.get(opaque);
-            s.remove(opaque);
-
-            if (r.getStatus() != 0) {
-                result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
-            }
-            else {
-                result.complete(new Version(r.getVersion()));
-            }
-        }, result::completeExceptionally));
+        return Optional.of(new Responder(Collections.singletonList(opaque),
+                                         result::completeExceptionally,
+                                         (s) -> {
+                                             Response r = s.get(opaque);
+                                             if (r.getStatus() != 0) {
+                                                 result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                                                  r.getError()));
+                                             }
+                                             else {
+                                                 result.complete(new Version(r.getVersion()));
+                                             }
+                                         }));
     }
 
     protected byte opCode() {

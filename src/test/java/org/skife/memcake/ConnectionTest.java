@@ -9,10 +9,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -120,5 +122,4 @@ public class ConnectionTest {
         Optional<Value> missing = c.get("hello".getBytes(StandardCharsets.UTF_8)).get();
         assertThat(missing).isEmpty();
     }
-
 }

@@ -5,7 +5,10 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,8 +151,18 @@ public class Connection implements AutoCloseable {
         if (sc != null) {
             // only store on scoreboard if *something* is waiting for it
             scoreboard.put(response.getOpaque(), response);
-            sc.success(scoreboard);
+            for (Integer remove : sc.success(scoreboard)) {
+                scoreboard.remove(remove);
+                waiting.remove(remove);
+            }
         }
+    }
+
+    /**
+     * Exists for whitebox testing of failure conditions only.
+     */
+    Map<Integer, Response> __getScoreboard() {
+        return scoreboard;
     }
 
     /* the main api of this thing */

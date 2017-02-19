@@ -1,6 +1,7 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -18,17 +19,19 @@ class FlushCommand extends Command {
 
     @Override
     public Optional<Responder> createResponder(int opaque) {
-        return Optional.of(new Responder((s) -> {
-            Response r = s.get(opaque);
-            s.remove(opaque);
-            if (r.getStatus() != 0) {
-                result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                 r.getError()));
-            }
-            else {
-                result.complete(null);
-            }
-        }, result::completeExceptionally));
+        return Optional.of(new Responder(Collections.singleton(opaque),
+                                         result::completeExceptionally,
+                                         (s) -> {
+                                             Response r = s.get(opaque);
+                                             s.remove(opaque);
+                                             if (r.getStatus() != 0) {
+                                                 result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                                                  r.getError()));
+                                             }
+                                             else {
+                                                 result.complete(null);
+                                             }
+                                         }));
     }
 
     @Override
