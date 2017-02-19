@@ -178,4 +178,13 @@ public class ConnectionTest {
         c.deleteq(e.key());
         assertThat(c.get(e.key()).get()).isEmpty();
     }
+
+    @Property
+    public void increment(Entry entry, long delta, long initial) throws Exception {
+        Counter one = c.increment(entry.key(), delta, initial, 0).get();
+        assertThat(one.getValue()).isEqualTo(initial);
+        Counter two = c.increment(entry.key(), delta, initial, 0).get();
+        assertThat(two.getValue()).isEqualTo(initial + delta);
+    }
+
 }

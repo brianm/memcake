@@ -268,4 +268,9 @@ public class Connection implements AutoCloseable {
         CompletableFuture<Void> r = new CompletableFuture<>();
         return enqueue(new DeleteQuietlyCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
+
+    public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration) {
+        CompletableFuture<Counter> r = new CompletableFuture<>();
+        return enqueue(new IncrementCommand(r, key, delta, initial, expiration, defaultTimeout, defaultTimeoutUnit), r);
+    }
 }

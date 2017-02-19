@@ -26,7 +26,7 @@ abstract class Command {
         byte extraLength = extraLength();
         char keyLength = keyLength();
         int bodyLength = bodyLength();
-        
+
         ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength + keyLength + bodyLength);
         buffer.put((byte)0x80); // client magic number
         buffer.put(opcode());
