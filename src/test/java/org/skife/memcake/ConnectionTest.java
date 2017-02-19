@@ -164,4 +164,11 @@ public class ConnectionTest {
         assertThat(c.queuedQuiets).isEmpty();
         assertThat(c.quietResponders).isEmpty();
     }
+
+    @Property
+    public void delete(Entry e) throws Exception {
+        c.set(e.key(), 0, 0, e.value()).get();
+        c.delete(e.key()).get();
+        assertThat(c.get(e.key()).get()).isEmpty();
+    }
 }

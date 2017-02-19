@@ -40,17 +40,13 @@ class SetCommand extends Command {
         });
     }
 
-    protected byte opCode() {
-        return Opcodes.set;
-    }
-
     @Override
     public void write(Connection conn, Integer opaque) {
         int bodyLength = 8 + key.length + value.length;
         ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
 
         buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(opCode());
+        buffer.put(opcode());
         buffer.putChar((char) key.length);
         buffer.put((byte) 0x08); // extra length
         buffer.put((byte) 0x00); // data type
@@ -65,5 +61,10 @@ class SetCommand extends Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
+    }
+
+    @Override
+    byte opcode() {
+        return Opcodes.set;
     }
 }

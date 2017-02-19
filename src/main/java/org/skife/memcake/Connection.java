@@ -106,7 +106,7 @@ public class Connection implements AutoCloseable {
                 Responder r = waiting.remove(opaque);
                 scoreboard.remove(opaque); // possible race between response coming in and timeout hitting
                 r.failure(new TimeoutException());
-            }, defaultTimeout, defaultTimeoutUnit);
+            }, c.getTimeout(), c.getTimeoutUnit());
         }
     }
 
@@ -226,5 +226,10 @@ public class Connection implements AutoCloseable {
     public CompletableFuture<Void> flush(int expires) {
         CompletableFuture<Void> result = new CompletableFuture<>();
         return enqueue(result, new FlushCommand(result, expires, defaultTimeout, defaultTimeoutUnit));
+    }
+
+    public CompletableFuture<Void> delete(byte[] key) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        return enqueue(result, new DeleteCommand(result, key, defaultTimeout, defaultTimeoutUnit));
     }
 }

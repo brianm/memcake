@@ -117,14 +117,16 @@ class Response {
                             GetCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.flush:
-                            FlushCommand.parseBody(Response.this, conn, bodyBuffer);
-                            break;
                         case Opcodes.set:
                         case Opcodes.add:
+                        case Opcodes.delete:
+                        case Opcodes.deleteq:
                         case Opcodes.replace:
-                        default:
-                            // set/add/replace never have bodies
+                            // these command never have bodies
                             conn.receive(Response.this);
+                            break;
+                        default:
+                            System.err.printf("unknown opcode %d\n", opcode);
                     }
                 }
                 else {

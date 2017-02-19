@@ -17,19 +17,7 @@ class FlushCommand extends Command {
 
     @Override
     public Responder createResponder(int opaque) {
-        return new Responder(opaque,
-                             result::completeExceptionally,
-                             (s) -> {
-                                 Response r = s.get(opaque);
-                                 s.remove(opaque);
-                                 if (r.getStatus() != 0) {
-                                     result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                                      r.getError()));
-                                 }
-                                 else {
-                                     result.complete(null);
-                                 }
-                             });
+        return Responder.standard(result, opaque);
     }
 
     @Override
@@ -37,7 +25,7 @@ class FlushCommand extends Command {
         byte extraLength = (byte) (expires > 0 ? 4 : 0);
         ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength);
         buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(Opcodes.flush);
+        buffer.put(opcode());
         buffer.put((byte) 0x00); // key length 1
         buffer.put((byte) 0x00); // key length 1
         buffer.put(extraLength); // extra length
@@ -52,10 +40,10 @@ class FlushCommand extends Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
-
     }
 
-    static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
-        conn.receive(response);
+    @Override
+    byte opcode() {
+        return Opcodes.flush;
     }
 }

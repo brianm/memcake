@@ -40,11 +40,13 @@ abstract class Command {
         return timeout;
     }
 
-    TimeUnit getUnit() {
+    TimeUnit getTimeoutUnit() {
         return unit;
     }
 
     boolean isQuiet() {
         return false;
     }
+
+    abstract byte opcode();
 }

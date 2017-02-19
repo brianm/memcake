@@ -15,7 +15,7 @@ class ReplaceCommand extends SetCommand {
     }
 
     @Override
-    protected byte opCode() {
+    protected byte opcode() {
         return Opcodes.replace;
     }
 }

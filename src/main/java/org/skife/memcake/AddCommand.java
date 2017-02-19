@@ -3,7 +3,7 @@ package org.skife.memcake;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class AddCommand extends SetCommand {
+class AddCommand extends SetCommand {
     AddCommand(CompletableFuture<Version> result,
                byte[] key,
                int flags,
@@ -15,7 +15,7 @@ public class AddCommand extends SetCommand {
     }
 
     @Override
-    protected byte opCode() {
+    protected byte opcode() {
         return Opcodes.add;
     }
 }

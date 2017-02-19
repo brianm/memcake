@@ -1,6 +1,7 @@
 package org.skife.memcake;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 class Responder {
@@ -24,5 +25,20 @@ class Responder {
     int failure(Throwable t) {
         failure.accept(t);
         return opaque;
+    }
+
+    static Responder standard(CompletableFuture<?> result, int opaque) {
+        return new Responder(opaque,
+                             result::completeExceptionally,
+                             (s) -> {
+                                 Response r = s.get(opaque);
+                                 if (r.getStatus() != 0) {
+                                     result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                                      r.getError()));
+                                 }
+                                 else {
+                                     result.complete(null);
+                                 }
+                             });
     }
 }
