@@ -42,27 +42,18 @@ class GetCommand extends Command {
     }
 
     @Override
-    public void write(Connection conn, Integer opaque) {
-        ByteBuffer buffer = ByteBuffer.allocate(24 + 8 + key.length);
-        buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(opcode());
-        buffer.putChar((char) key.length);
-        buffer.put((byte) 0x00); // extra length
-        buffer.put((byte) 0x00); // data type
-        buffer.putChar((char) 0x00); // vbucket
-        buffer.putInt(key.length);
-        buffer.putInt(opaque);
-        buffer.putLong(0); //cas
-        buffer.put(key);
+    char keyLength() {
+        return (char) key.length;
+    }
 
-        buffer.flip();
-        Command.writeBuffer(conn, buffer);
+    @Override
+    void writeBody(ByteBuffer buffer) {
+        buffer.put(key);
     }
 
     protected byte opcode() {
         return Opcodes.get;
     }
-
 
     static void parseBody(Response response, Connection conn, ByteBuffer bodyBuffer) {
         response.setFlags(bodyBuffer.getInt());

@@ -41,26 +41,26 @@ class SetCommand extends Command {
     }
 
     @Override
-    public void write(Connection conn, Integer opaque) {
-        int bodyLength = 8 + key.length + value.length;
-        ByteBuffer buffer = ByteBuffer.allocate(24 + bodyLength);
+    byte extraLength() {
+        return 8;
+    }
 
-        buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(opcode());
-        buffer.putChar((char) key.length);
-        buffer.put((byte) 0x08); // extra length
-        buffer.put((byte) 0x00); // data type
-        buffer.putChar((char) 0x00); // vbucket
-        buffer.putInt(bodyLength);
-        buffer.putInt(opaque);
-        buffer.putLong(0); //cas
+    @Override
+    char keyLength() {
+        return (char) key.length;
+    }
+
+    @Override
+    int bodyLength() {
+        return value.length;
+    }
+
+    @Override
+    void writeBody(ByteBuffer buffer) {
         buffer.putInt(flags);
         buffer.putInt(expires);
         buffer.put(key);
         buffer.put(value);
-
-        buffer.flip();
-        Command.writeBuffer(conn, buffer);
     }
 
     @Override
