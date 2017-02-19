@@ -3,6 +3,7 @@ package org.skife.memcake;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 class Responder {
     private final Consumer<Map<Integer, Response>> success;
@@ -27,25 +28,20 @@ class Responder {
         return opaque;
     }
 
-    static Responder standard(Command c, CompletableFuture<?> result, int opaque) {
-        return new Responder(opaque,
-                             result::completeExceptionally,
-                             (s) -> {
-                                 Response r = s.get(opaque);
+    static Responder voidResponder(Command c, CompletableFuture<Void> result, int opaque) {
+        return new Responder(opaque, result::completeExceptionally, (s) -> {
+            Response r = s.get(opaque);
 
-                                 if (c.isQuiet() && r == null) {
-                                     // probably quiet, standard can only handle Void quiets
-                                     result.complete(null);
-                                     return;
-                                 }
-
-                                 if (r.getStatus() != 0) {
-                                     result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                                      r.getError()));
-                                 }
-                                 else {
-                                     result.complete(null);
-                                 }
-                             });
+            if (c.isQuiet() && r == null) {
+                // probably quiet, voidResponder can only handle Void quiets
+                result.complete(null);
+            }
+            else if (r.getStatus() != 0) {
+                result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
+            }
+            else {
+                result.complete(null);
+            }
+        });
     }
 }

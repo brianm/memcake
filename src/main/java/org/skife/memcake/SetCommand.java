@@ -30,12 +30,12 @@ class SetCommand extends Command {
     public Responder createResponder(int opaque) {
         return new Responder(opaque, result::completeExceptionally, (s) -> {
             Response r = s.get(opaque);
-            if (r.getStatus() != 0) {
-                result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                 r.getError()));
+            if (r.getStatus() == 0) {
+                result.complete(new Version(r.getVersion()));
             }
             else {
-                result.complete(new Version(r.getVersion()));
+                result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                 r.getError()));
             }
         });
     }
