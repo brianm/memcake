@@ -9,7 +9,7 @@ abstract class Command {
     private final long timeout;
     private final TimeUnit unit;
 
-    protected Command(long timeout, TimeUnit unit) {
+    Command(long timeout, TimeUnit unit) {
         this.timeout = timeout;
         this.unit = unit;
     }
@@ -46,7 +46,7 @@ abstract class Command {
         Command.writeBuffer(conn, buffer);
     }
 
-    static void writeBuffer(final Connection conn, final ByteBuffer buffer) {
+    private static void writeBuffer(final Connection conn, final ByteBuffer buffer) {
         conn.getChannel().write(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {
             @Override
             public void completed(Integer result, ByteBuffer attachment) {
