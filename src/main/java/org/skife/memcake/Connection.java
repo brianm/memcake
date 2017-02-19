@@ -3,7 +3,6 @@ package org.skife.memcake;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Map;
@@ -23,7 +22,7 @@ public class Connection implements AutoCloseable {
 
     private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
 
-    private final ConcurrentMap<Integer, Consumer<Map<Integer, Response>>> waiting = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
     private final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
@@ -79,7 +78,7 @@ public class Connection implements AutoCloseable {
             }
 
             int opaque = opaques.getAndIncrement();
-            c.createConsumer(opaque).ifPresent((consumer) -> waiting.put(opaque, consumer));
+            c.createResponder(opaque).ifPresent((responder) -> waiting.put(opaque, responder));
             c.write(this, opaque);
 
         }
@@ -113,7 +112,8 @@ public class Connection implements AutoCloseable {
 
     void networkFailure(Throwable exc) {
         close();
-        throw new UnsupportedOperationException("Not Yet Implemented!", exc);
+        waiting.forEach((_opaque, responder) -> responder.failure(exc));
+        waiting.clear();
     }
 
     private void processResponseHeader(ByteBuffer buffer) {
@@ -142,9 +142,9 @@ public class Connection implements AutoCloseable {
 
     void receive(Response response) {
         scoreboard.put(response.getOpaque(), response);
-        Consumer<Map<Integer, Response>> sc = waiting.get(response.getOpaque());
+        Responder sc = waiting.get(response.getOpaque());
         if (sc != null) {
-            sc.accept(scoreboard);
+            sc.success(scoreboard);
         }
     }
 

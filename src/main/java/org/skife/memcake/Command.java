@@ -2,12 +2,10 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 interface Command {
-    Optional<Consumer<Map<Integer, Response>>> createConsumer(int opaque);
+    Optional<Responder> createResponder(int opaque);
 
     void write(Connection conn, Integer opaque);
 

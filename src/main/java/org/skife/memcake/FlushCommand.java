@@ -1,10 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 class FlushCommand implements Command {
 
@@ -17,16 +15,18 @@ class FlushCommand implements Command {
     }
 
     @Override
-    public Optional<Consumer<Map<Integer, Response>>> createConsumer(int opaque) {
-        return Optional.of((s) -> {
+    public Optional<Responder> createResponder(int opaque) {
+        return Optional.of(new Responder((s) -> {
             Response r = s.get(opaque);
             s.remove(opaque);
             if (r.getStatus() != 0) {
-                result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
-            } else {
+                result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                 r.getError()));
+            }
+            else {
                 result.complete(null);
             }
-        });
+        }, result::completeExceptionally));
     }
 
     @Override

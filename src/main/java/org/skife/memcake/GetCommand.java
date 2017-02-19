@@ -1,10 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 class GetCommand implements Command {
 
@@ -17,8 +15,8 @@ class GetCommand implements Command {
     }
 
     @Override
-    public Optional<Consumer<Map<Integer, Response>>> createConsumer(int opaque) {
-        return Optional.of((s) -> {
+    public Optional<Responder> createResponder(int opaque) {
+        return Optional.of(new Responder((s) -> {
             Response r = s.get(opaque);
             s.remove(opaque);
 
@@ -32,7 +30,7 @@ class GetCommand implements Command {
                 default:
                     result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
             }
-        });
+        }, result::completeExceptionally));
     }
 
     @Override
