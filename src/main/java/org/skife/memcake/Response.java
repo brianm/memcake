@@ -113,6 +113,7 @@ class Response {
                     // success, process the body per message type
                     switch (opcode) {
                         case Opcodes.get:
+                        case Opcodes.getq:
                             GetCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.flush:

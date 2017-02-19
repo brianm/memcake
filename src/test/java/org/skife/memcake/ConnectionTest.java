@@ -122,4 +122,16 @@ public class ConnectionTest {
         Optional<Value> missing = c.get("hello".getBytes(StandardCharsets.UTF_8)).get();
         assertThat(missing).isEmpty();
     }
+
+    @Property
+    public void testGetQuietly(Entry entry) throws Exception {
+        c.set(entry.key(), 0, 0, entry.value()).get();
+        byte[] missingKey = entry.key();
+        missingKey[0] = (byte)(missingKey[0] + 0x01);
+
+        CompletableFuture<Optional<Value>> fq =  c.getq(missingKey);
+        Optional<Value> v = c.get(entry.key()).get();
+        // request pipelined AFTER fq has completed, so we know fq is missing
+        assertThat(fq.get()).isEmpty();
+    }
 }

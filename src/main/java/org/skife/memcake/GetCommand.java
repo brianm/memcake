@@ -45,7 +45,7 @@ class GetCommand extends Command {
     public void write(Connection conn, Integer opaque) {
         ByteBuffer buffer = ByteBuffer.allocate(24 + 8 + key.length);
         buffer.put(Bits.CLIENT_MAGIC);
-        buffer.put(Opcodes.get);
+        buffer.put(opcode());
         buffer.putChar((char) key.length);
         buffer.put((byte) 0x00); // extra length
         buffer.put((byte) 0x00); // data type
@@ -57,6 +57,10 @@ class GetCommand extends Command {
 
         buffer.flip();
         Command.writeBuffer(conn, buffer);
+    }
+
+    protected byte opcode() {
+        return Opcodes.get;
     }
 
 

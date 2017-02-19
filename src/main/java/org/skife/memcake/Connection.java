@@ -178,7 +178,11 @@ public class Connection implements AutoCloseable {
     public CompletableFuture<Optional<Value>> get(byte[] key) {
         CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
         return enqueue(cf, new GetCommand(cf, key, defaultTimeout, defaultTimeoutUnit));
+    }
 
+    public CompletableFuture<Optional<Value>> getq(byte[] key) {
+        CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
+        return enqueue(cf, new GetQuietlyCommand(cf, key, defaultTimeout, defaultTimeoutUnit));
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
