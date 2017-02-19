@@ -60,6 +60,7 @@ public class ConnectionTest {
         CompletableFuture<Optional<Value>> gf = c.get(entry.key());
         Optional<Value> v = gf.get(2, TimeUnit.SECONDS);
 
+        assertThat(v).isPresent();
         assertThat(v.get().getVersion()).isEqualTo(cas);
         assertThat(v.get().getValue()).isEqualTo(entry.value());
     }
@@ -84,6 +85,13 @@ public class ConnectionTest {
             Optional<Value> v = futureValues.get(i).get();
             assertThat(v.get().getValue()).isEqualTo(entries.get(i).value());
         }
+    }
+
+    @Property
+    public void flagsRoundTrip(Entry entry, int flags) throws Exception {
+        c.set(entry.key(), flags, 0, entry.value()).get();
+        Value v = c.get(entry.key()).get().get();
+        assertThat(v.getFlags()).isEqualTo(flags);
     }
 
     @Property
