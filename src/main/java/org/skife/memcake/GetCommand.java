@@ -1,7 +1,6 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -18,27 +17,22 @@ class GetCommand extends Command {
     }
 
     @Override
-    public Optional<Responder> createResponder(int opaque) {
-        return Optional.of(new Responder(Collections.singleton(opaque),
-                                         result::completeExceptionally,
-                                         (s) -> {
-                                             Response r = s.get(opaque);
-                                             s.remove(opaque);
+    public Responder createResponder(int opaque) {
+        return new Responder(opaque, result::completeExceptionally, (s) -> {
+            Response r = s.get(opaque);
+            s.remove(opaque);
 
-                                             switch (r.getStatus()) {
-                                                 case 0:
-                                                     result.complete(Optional.of(new Value(new Version(r.getVersion()),
-                                                                                           r.getFlags(),
-                                                                                           r.getValue())));
-                                                     break;
-                                                 case 1:
-                                                     result.complete(Optional.empty());
-                                                     break;
-                                                 default:
-                                                     result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                                                      r.getError()));
-                                             }
-                                         }));
+            switch (r.getStatus()) {
+                case 0:
+                    result.complete(Optional.of(new Value(new Version(r.getVersion()), r.getFlags(), r.getValue())));
+                    break;
+                case 1:
+                    result.complete(Optional.empty());
+                    break;
+                default:
+                    result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
+            }
+        });
     }
 
     @Override

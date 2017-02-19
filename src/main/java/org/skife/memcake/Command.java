@@ -15,7 +15,7 @@ abstract class Command {
         this.unit = unit;
     }
 
-    abstract Optional<Responder> createResponder(int opaque);
+    abstract Responder createResponder(int opaque);
 
     abstract void write(Connection conn, Integer opaque);
 
@@ -43,5 +43,9 @@ abstract class Command {
 
     TimeUnit getUnit() {
         return unit;
+    }
+
+    boolean isQuiet() {
+        return false;
     }
 }

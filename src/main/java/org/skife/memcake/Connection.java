@@ -5,10 +5,8 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,7 +78,13 @@ public class Connection implements AutoCloseable {
             }
 
             int opaque = opaques.getAndIncrement();
-            c.createResponder(opaque).ifPresent((responder) -> waiting.put(opaque, responder));
+            Responder responder = c.createResponder(opaque);
+            waiting.put(opaque, responder);
+
+            if (c.isQuiet()) {
+                // TODO enqueue it somehow for later non-quiet
+            }
+
             c.write(this, opaque);
             timeoutExecutor.schedule(() -> {
                 Responder r = waiting.remove(opaque);
@@ -151,18 +155,11 @@ public class Connection implements AutoCloseable {
         if (sc != null) {
             // only store on scoreboard if *something* is waiting for it
             scoreboard.put(response.getOpaque(), response);
-            for (Integer remove : sc.success(scoreboard)) {
-                scoreboard.remove(remove);
-                waiting.remove(remove);
-            }
-        }
-    }
+            Integer opaque = sc.completed(scoreboard);
+            scoreboard.remove(opaque);
+            waiting.remove(opaque);
 
-    /**
-     * Exists for whitebox testing of failure conditions only.
-     */
-    Map<Integer, Response> __getScoreboard() {
-        return scoreboard;
+        }
     }
 
     /* the main api of this thing */
@@ -197,7 +194,8 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new ReplaceCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
+        return enqueue(result,
+                       new ReplaceCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
     }
 
     public CompletableFuture<Void> flush(int expires) {

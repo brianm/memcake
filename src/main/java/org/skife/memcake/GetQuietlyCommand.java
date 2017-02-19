@@ -1,6 +1,5 @@
 package org.skife.memcake;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -14,5 +13,10 @@ class GetQuietlyCommand extends GetCommand {
     @Override
     protected byte opcode() {
         return Opcodes.getq;
+    }
+
+    @Override
+    boolean isQuiet() {
+        return true;
     }
 }
