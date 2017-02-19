@@ -1,10 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 class SetCommand implements Command {
     private final CompletableFuture<Version> result;
