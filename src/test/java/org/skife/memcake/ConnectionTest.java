@@ -149,7 +149,7 @@ public class ConnectionTest {
         CompletableFuture<Void> f = c.get(new byte[]{5})
                                      .thenAccept((o) -> o.ifPresent((v) -> results.put(5, v.getValue())));
         f.get();
-        assertThat(results).containsOnlyKeys(1,3,5);
+        assertThat(results).containsOnlyKeys(1, 3, 5);
         assertThat(c.scoreboard).isEmpty();
         assertThat(c.waiting).isEmpty();
         assertThat(c.queuedQuiets).isEmpty();

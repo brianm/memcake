@@ -2,7 +2,6 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 abstract class Command {

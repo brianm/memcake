@@ -8,7 +8,6 @@ import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
@@ -27,7 +26,9 @@ public class Connection implements AutoCloseable {
 
     private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
 
-    // made visible-ish for testing purposes only
+    // made visible-ish for white box testing purposes only
+    // basically, need to ensure clean state at various points to make
+    // sure resources are not leaking!
     final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
     final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
     final ConcurrentMap<Integer, Collection<Integer>> quietResponders = new ConcurrentHashMap<>();
@@ -93,7 +94,8 @@ public class Connection implements AutoCloseable {
             if (c.isQuiet()) {
                 queuedQuiets.add(opaque);
                 // TODO enqueue it somehow for later non-quiet
-            } else {
+            }
+            else {
                 List<Integer> quiets = new ArrayList<>();
                 queuedQuiets.drainTo(quiets);
                 quietResponders.put(opaque, quiets);
