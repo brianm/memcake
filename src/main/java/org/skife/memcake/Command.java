@@ -20,15 +20,13 @@ abstract class Command {
     char keyLength() { return 0;}
     int bodyLength() { return 0;}
     int cas() { return 0;}
-
-    void writeBody(ByteBuffer buffer) {
-
-    }
+    void writeBody(ByteBuffer buffer) {}
 
     void write(Connection conn, Integer opaque) {
         byte extraLength = extraLength();
         char keyLength = keyLength();
         int bodyLength = bodyLength();
+        
         ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength + keyLength + bodyLength);
         buffer.put((byte)0x80); // client magic number
         buffer.put(opcode());
