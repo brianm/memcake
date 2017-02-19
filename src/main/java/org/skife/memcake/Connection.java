@@ -5,18 +5,18 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 public class Connection implements AutoCloseable {
 
@@ -80,7 +80,11 @@ public class Connection implements AutoCloseable {
             int opaque = opaques.getAndIncrement();
             c.createResponder(opaque).ifPresent((responder) -> waiting.put(opaque, responder));
             c.write(this, opaque);
-
+            timeoutExecutor.schedule(() -> {
+                Responder r = waiting.remove(opaque);
+                scoreboard.remove(opaque); // possible race between response coming in and timeout hitting
+                r.failure(new TimeoutException());
+            }, defaultTimeout, defaultTimeoutUnit);
         }
     }
 
@@ -141,9 +145,10 @@ public class Connection implements AutoCloseable {
     }
 
     void receive(Response response) {
-        scoreboard.put(response.getOpaque(), response);
         Responder sc = waiting.get(response.getOpaque());
         if (sc != null) {
+            // only store on scoreboard if *something* is waiting for it
+            scoreboard.put(response.getOpaque(), response);
             sc.success(scoreboard);
         }
     }
