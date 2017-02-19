@@ -8,9 +8,8 @@ import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -28,8 +27,12 @@ public class Connection implements AutoCloseable {
 
     private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
 
-    private final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
+    // made visible-ish for testing purposes only
+    final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
+    final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
+    final ConcurrentMap<Integer, Collection<Integer>> quietResponders = new ConcurrentHashMap<>();
+    final BlockingQueue<Integer> queuedQuiets = new LinkedBlockingQueue<>();
+
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
 
@@ -72,9 +75,6 @@ public class Connection implements AutoCloseable {
         });
         return cf;
     }
-
-    private final ConcurrentMap<Integer, Collection<Integer>> quietResponders = new ConcurrentHashMap<>();
-    private final BlockingQueue<Integer> queuedQuiets = new LinkedBlockingQueue<>();
 
     private void maybeWrite() {
         if (writing.compareAndSet(false, true)) {

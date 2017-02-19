@@ -9,10 +9,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -127,11 +127,32 @@ public class ConnectionTest {
     public void testGetQuietly(Entry entry) throws Exception {
         c.set(entry.key(), 0, 0, entry.value()).get();
         byte[] missingKey = entry.key();
-        missingKey[0] = (byte)(missingKey[0] + 0x01);
+        missingKey[0] = (byte) (missingKey[0] + 0x01);
 
-        CompletableFuture<Optional<Value>> fq =  c.getq(missingKey);
+        CompletableFuture<Optional<Value>> fq = c.getq(missingKey);
         Optional<Value> v = c.get(entry.key()).get();
         // request pipelined AFTER fq has completed, so we know fq is missing
         assertThat(fq.get()).isEmpty();
+    }
+
+    @Test
+    public void testMultiGetBatchExample() throws Exception {
+        c.set(new byte[]{1}, 0, 0, new byte[]{1}).get();
+        c.set(new byte[]{3}, 0, 0, new byte[]{3}).get();
+        c.set(new byte[]{5}, 0, 0, new byte[]{5}).get();
+
+        final Map<Integer, byte[]> results = new HashMap<>();
+        c.getq(new byte[]{1}).thenAccept((o) -> o.ifPresent((v) -> results.put(1, v.getValue())));
+        c.getq(new byte[]{2}).thenAccept((o) -> o.ifPresent((v) -> results.put(2, v.getValue())));
+        c.getq(new byte[]{3}).thenAccept((o) -> o.ifPresent((v) -> results.put(3, v.getValue())));
+        c.getq(new byte[]{4}).thenAccept((o) -> o.ifPresent((v) -> results.put(4, v.getValue())));
+        CompletableFuture<Void> f = c.get(new byte[]{5})
+                                     .thenAccept((o) -> o.ifPresent((v) -> results.put(5, v.getValue())));
+        f.get();
+        assertThat(results).containsOnlyKeys(1,3,5);
+        assertThat(c.scoreboard).isEmpty();
+        assertThat(c.waiting).isEmpty();
+        assertThat(c.queuedQuiets).isEmpty();
+        assertThat(c.quietResponders).isEmpty();
     }
 }
