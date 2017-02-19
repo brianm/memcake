@@ -5,13 +5,19 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,6 +73,9 @@ public class Connection implements AutoCloseable {
         return cf;
     }
 
+    private final ConcurrentMap<Integer, Collection<Integer>> quietResponders = new ConcurrentHashMap<>();
+    private final BlockingQueue<Integer> queuedQuiets = new LinkedBlockingQueue<>();
+
     private void maybeWrite() {
         if (writing.compareAndSet(false, true)) {
             // write next outbound command
@@ -82,7 +91,12 @@ public class Connection implements AutoCloseable {
             waiting.put(opaque, responder);
 
             if (c.isQuiet()) {
+                queuedQuiets.add(opaque);
                 // TODO enqueue it somehow for later non-quiet
+            } else {
+                List<Integer> quiets = new ArrayList<>();
+                queuedQuiets.drainTo(quiets);
+                quietResponders.put(opaque, quiets);
             }
 
             c.write(this, opaque);
@@ -158,7 +172,16 @@ public class Connection implements AutoCloseable {
             Integer opaque = sc.completed(scoreboard);
             scoreboard.remove(opaque);
             waiting.remove(opaque);
-
+        }
+        Collection<Integer> quiets = quietResponders.remove(response.getOpaque());
+        if (quiets != null) {
+            for (Integer quiet : quiets) {
+                Responder r = waiting.remove(quiet);
+                if (r != null) {
+                    r.completed(scoreboard);
+                }
+                scoreboard.remove(quiet);
+            }
         }
     }
 

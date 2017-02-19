@@ -20,7 +20,13 @@ class GetCommand extends Command {
     public Responder createResponder(int opaque) {
         return new Responder(opaque, result::completeExceptionally, (s) -> {
             Response r = s.get(opaque);
-            s.remove(opaque);
+
+            if (r == null && opcode() == Opcodes.getq) {
+                // this was a getq and we didn't get a response, but
+                // a future nonquiet query led us here.
+                result.complete(Optional.empty());
+                return;
+            }
 
             switch (r.getStatus()) {
                 case 0:

@@ -38,7 +38,7 @@ public class ConnectionTest {
         cron = Executors.newScheduledThreadPool(1);
         c = Connection.open(mc.getAddress(),
                             AsynchronousSocketChannel.open(),
-                            cron, 1, TimeUnit.SECONDS).get();
+                            cron, 1, TimeUnit.HOURS).get();
 
         // yes yes, we use the thing under test to clean up after itself. It works though.
         c.flush(0).get();
