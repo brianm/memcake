@@ -30,7 +30,7 @@ abstract class Command {
         char keyLength = keyLength();
         int bodyLength = bodyLength();
         ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength + keyLength + bodyLength);
-        buffer.put(Bits.CLIENT_MAGIC);
+        buffer.put((byte)0x80); // client magic number
         buffer.put(opcode());
         buffer.putChar(keyLength);
         buffer.put(extraLength); // extra length
@@ -38,7 +38,7 @@ abstract class Command {
         buffer.putChar((char) 0x00); // vbucket
         buffer.putInt(extraLength + keyLength + bodyLength); // totalBody
         buffer.putInt(opaque);
-        buffer.putLong(cas()); //cas
+        buffer.putLong(cas());
 
         writeBody(buffer);
 
