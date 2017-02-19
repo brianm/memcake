@@ -27,11 +27,18 @@ class Responder {
         return opaque;
     }
 
-    static Responder standard(CompletableFuture<?> result, int opaque) {
+    static Responder standard(Command c, CompletableFuture<?> result, int opaque) {
         return new Responder(opaque,
                              result::completeExceptionally,
                              (s) -> {
                                  Response r = s.get(opaque);
+
+                                 if (c.isQuiet() && r == null) {
+                                     // probably quiet, standard can only handle Void quiets
+                                     result.complete(null);
+                                     return;
+                                 }
+
                                  if (r.getStatus() != 0) {
                                      result.completeExceptionally(new StatusException(r.getStatus(),
                                                                                       r.getError()));

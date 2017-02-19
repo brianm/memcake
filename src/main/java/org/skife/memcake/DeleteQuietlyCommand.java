@@ -15,4 +15,9 @@ public class DeleteQuietlyCommand extends DeleteCommand {
     public byte opcode() {
         return Opcodes.deleteq;
     }
+
+    @Override
+    boolean isQuiet() {
+        return true;
+    }
 }

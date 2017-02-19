@@ -232,4 +232,9 @@ public class Connection implements AutoCloseable {
         CompletableFuture<Void> result = new CompletableFuture<>();
         return enqueue(result, new DeleteCommand(result, key, defaultTimeout, defaultTimeoutUnit));
     }
+
+    public CompletableFuture<Void> deleteq(byte[] key) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        return enqueue(result, new DeleteQuietlyCommand(result, key, defaultTimeout, defaultTimeoutUnit));
+    }
 }

@@ -16,7 +16,35 @@ abstract class Command {
 
     abstract Responder createResponder(int opaque);
 
-    abstract void write(Connection conn, Integer opaque);
+    byte extraLength() { return 0;}
+    char keyLength() { return 0;}
+    int bodyLength() { return 0;}
+    int cas() { return 0;}
+
+    void writeBody(ByteBuffer buffer) {
+
+    }
+
+    void write(Connection conn, Integer opaque) {
+        byte extraLength = extraLength();
+        char keyLength = keyLength();
+        int bodyLength = bodyLength();
+        ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength + keyLength + bodyLength);
+        buffer.put(Bits.CLIENT_MAGIC);
+        buffer.put(opcode());
+        buffer.putChar(keyLength);
+        buffer.put(extraLength); // extra length
+        buffer.put((byte) 0x00); // data type
+        buffer.putChar((char) 0x00); // vbucket
+        buffer.putInt(extraLength + keyLength + bodyLength); // totalBody
+        buffer.putInt(opaque);
+        buffer.putLong(cas()); //cas
+
+        writeBody(buffer);
+
+        buffer.flip();
+        Command.writeBuffer(conn, buffer);
+    }
 
     static void writeBuffer(final Connection conn, final ByteBuffer buffer) {
         conn.getChannel().write(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {

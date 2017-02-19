@@ -17,7 +17,7 @@ class FlushCommand extends Command {
 
     @Override
     public Responder createResponder(int opaque) {
-        return Responder.standard(result, opaque);
+        return Responder.standard(this, result, opaque);
     }
 
     @Override

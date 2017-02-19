@@ -171,4 +171,11 @@ public class ConnectionTest {
         c.delete(e.key()).get();
         assertThat(c.get(e.key()).get()).isEmpty();
     }
+
+    @Property
+    public void deleteQuietly(Entry e) throws Exception {
+        c.set(e.key(), 0, 0, e.value()).get();
+        c.deleteq(e.key());
+        assertThat(c.get(e.key()).get()).isEmpty();
+    }
 }
