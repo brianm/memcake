@@ -24,16 +24,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Connection implements AutoCloseable {
 
+    // TODO put a limit on how deep this can grow!
     private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
 
     // made visible-ish for white box testing purposes only
-    // basically, need to ensure clean state at various points to make
-    // sure resources are not leaking!
     final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
+
+    // opaque -> Response mapping for responses which have not been responded to yet.
+    // Will generally cycle quickly, the only time it should accumulate is when a big
+    // pipeline of quiet gets (or such) were fired off and we're waiting on their
+    // anchor to land.
+    // made visible-ish for white box testing purposes only
     final ConcurrentMap<Integer, Response> scoreboard = new ConcurrentHashMap<>();
-    final ConcurrentMap<Integer, Collection<Integer>> quietResponders = new ConcurrentHashMap<>();
+
+    // list of opaques for quiet operations which have been written but which have not had
+    // a non-quiet command follow yet. Queue will be dumped into quietProxies once such
+    // a command is sent.
+    // made visible-ish for white box testing purposes only
+    // TODO consider putting a limit on how deep this can grow by forcing a NOOP
+    //      command once it hits that limit.
     final BlockingQueue<Integer> queuedQuiets = new LinkedBlockingQueue<>();
 
+    // tracks the collection of of quiet command opaques which were sent after the last non-quiet
+    // command, and before the key here. Basically, when we see the opaque for any of these
+    // keys come back, we know the commands from the opaques attached have all been processed
+    // so if we didn't get a response, well, make sense of it based on the type of quiet :-)
+    // made visible-ish for white box testing purposes only
+    final ConcurrentMap<Integer, Collection<Integer>> quietProxies = new ConcurrentHashMap<>();
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
 
@@ -77,6 +94,9 @@ public class Connection implements AutoCloseable {
         return cf;
     }
 
+    /**
+     * The main write "loop" used to ensure only one write is happening at a time.
+     */
     private void maybeWrite() {
         if (writing.compareAndSet(false, true)) {
             // write next outbound command
@@ -98,7 +118,7 @@ public class Connection implements AutoCloseable {
             else {
                 List<Integer> quiets = new ArrayList<>();
                 queuedQuiets.drainTo(quiets);
-                quietResponders.put(opaque, quiets);
+                quietProxies.put(opaque, quiets);
             }
 
             c.write(this, opaque);
@@ -110,11 +130,18 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    /**
+     * Called by commands when the finish writing themselves out, this is the recur bit of the
+     * main write loop, paired with maybeWrite()
+     */
     void finishWrite() {
         writing.set(false);
         maybeWrite();
     }
 
+    /**
+     * Main read loop.
+     */
     void nextResponse(ByteBuffer headerBuffer) {
         if (open.get()) {
             channel.read(headerBuffer, headerBuffer, new CompletionHandler<Integer, ByteBuffer>() {
@@ -125,7 +152,11 @@ public class Connection implements AutoCloseable {
                         return;
                     }
                     buffer.flip();
-                    processResponseHeader(buffer);
+                    // creating the response parses out the buffer
+                    // readBody may queue additional read operations.
+                    // when any reads queued by readBody() complete, it
+                    // invokes nextReponse again.
+                    new Response(Connection.this, buffer).readBody();
                 }
 
                 @Override
@@ -136,20 +167,13 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    /**
+     * Invoked if any networking operations hit an error.
+     */
     void networkFailure(Throwable exc) {
         close();
         waiting.forEach((_opaque, responder) -> responder.failure(exc));
         waiting.clear();
-    }
-
-    private void processResponseHeader(ByteBuffer buffer) {
-        new Response(this, buffer).readBody();
-    }
-
-    private void checkState() {
-        if (!open.get()) {
-            throw new IllegalStateException("Connection is closed and no longer usable");
-        }
     }
 
     public void close() {
@@ -162,10 +186,19 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    private void checkState() {
+        if (!open.get()) {
+            throw new IllegalStateException("Connection is closed and no longer usable");
+        }
+    }
+
     AsynchronousSocketChannel getChannel() {
         return channel;
     }
 
+    /**
+     * Fully parsed response has been received, let's trigger listeners, etc.
+     */
     void receive(Response response) {
         Responder sc = waiting.get(response.getOpaque());
         if (sc != null) {
@@ -175,7 +208,7 @@ public class Connection implements AutoCloseable {
             scoreboard.remove(opaque);
             waiting.remove(opaque);
         }
-        Collection<Integer> quiets = quietResponders.remove(response.getOpaque());
+        Collection<Integer> quiets = quietProxies.remove(response.getOpaque());
         if (quiets != null) {
             for (Integer quiet : quiets) {
                 Responder r = waiting.remove(quiet);
@@ -187,54 +220,52 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    /* the main api of this thing */
-
-
-    private <T> CompletableFuture<T> enqueue(CompletableFuture<T> result, Command c) {
+    private <T> CompletableFuture<T> enqueue(Command command, CompletableFuture<T> result) {
         checkState();
-        queuedRequests.add(c);
+        queuedRequests.add(command);
         maybeWrite();
         return result;
     }
 
+    /* the main api of this thing, as used by users */
+
     public CompletableFuture<Optional<Value>> get(byte[] key) {
-        CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
-        return enqueue(cf, new GetCommand(cf, key, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
+        return enqueue(new GetCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Optional<Value>> getq(byte[] key) {
-        CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
-        return enqueue(cf, new GetQuietlyCommand(cf, key, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
+        return enqueue(new GetQuietlyCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new SetCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new SetCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new AddCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new AddCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result,
-                       new ReplaceCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new ReplaceCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> flush(int expires) {
-        CompletableFuture<Void> result = new CompletableFuture<>();
-        return enqueue(result, new FlushCommand(result, expires, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new FlushCommand(r, expires, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> delete(byte[] key) {
-        CompletableFuture<Void> result = new CompletableFuture<>();
-        return enqueue(result, new DeleteCommand(result, key, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new DeleteCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> deleteq(byte[] key) {
-        CompletableFuture<Void> result = new CompletableFuture<>();
-        return enqueue(result, new DeleteQuietlyCommand(result, key, defaultTimeout, defaultTimeoutUnit));
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new DeleteQuietlyCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
 }

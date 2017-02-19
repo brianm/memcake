@@ -162,7 +162,7 @@ public class ConnectionTest {
         assertThat(c.scoreboard).isEmpty();
         assertThat(c.waiting).isEmpty();
         assertThat(c.queuedQuiets).isEmpty();
-        assertThat(c.quietResponders).isEmpty();
+        assertThat(c.quietProxies).isEmpty();
     }
 
     @Property
