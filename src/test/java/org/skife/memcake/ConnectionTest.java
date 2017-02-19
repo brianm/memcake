@@ -149,14 +149,15 @@ public class ConnectionTest {
         c.set(new byte[]{3}, 0, 0, new byte[]{3}).get();
         c.set(new byte[]{5}, 0, 0, new byte[]{5}).get();
 
+        // a protocol-level multiget, collecting results in a map.
         final Map<Integer, byte[]> results = new HashMap<>();
         c.getq(new byte[]{1}).thenAccept((o) -> o.ifPresent((v) -> results.put(1, v.getValue())));
         c.getq(new byte[]{2}).thenAccept((o) -> o.ifPresent((v) -> results.put(2, v.getValue())));
         c.getq(new byte[]{3}).thenAccept((o) -> o.ifPresent((v) -> results.put(3, v.getValue())));
         c.getq(new byte[]{4}).thenAccept((o) -> o.ifPresent((v) -> results.put(4, v.getValue())));
-        CompletableFuture<Void> f = c.get(new byte[]{5})
-                                     .thenAccept((o) -> o.ifPresent((v) -> results.put(5, v.getValue())));
-        f.get();
+        c.get(new byte[]{5}).thenAccept((o) -> o.ifPresent((v) -> results.put(5, v.getValue())))
+         .get();
+
         assertThat(results).containsOnlyKeys(1, 3, 5);
         assertThat(c.scoreboard).isEmpty();
         assertThat(c.waiting).isEmpty();
