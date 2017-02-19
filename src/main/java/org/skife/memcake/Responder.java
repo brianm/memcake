@@ -3,7 +3,6 @@ package org.skife.memcake;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 class Responder {
     private final Consumer<Map<Integer, Response>> success;
