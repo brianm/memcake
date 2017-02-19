@@ -164,27 +164,27 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Optional<Value>> get(byte[] key) {
         CompletableFuture<Optional<Value>> cf = new CompletableFuture<>();
-        return enqueue(cf, new GetCommand(cf, key));
+        return enqueue(cf, new GetCommand(cf, key, defaultTimeout, defaultTimeoutUnit));
 
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new SetCommand(result, key, flags, expires, value));
+        return enqueue(result, new SetCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new AddCommand(result, key, flags, expires, value));
+        return enqueue(result, new AddCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> result = new CompletableFuture<>();
-        return enqueue(result, new ReplaceCommand(result, key, flags, expires, value));
+        return enqueue(result, new ReplaceCommand(result, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit));
     }
 
     public CompletableFuture<Void> flush(int expires) {
         CompletableFuture<Void> result = new CompletableFuture<>();
-        return enqueue(result, new FlushCommand(result, expires));
+        return enqueue(result, new FlushCommand(result, expires, defaultTimeout, defaultTimeoutUnit));
     }
 }

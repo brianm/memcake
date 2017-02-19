@@ -3,15 +3,17 @@ package org.skife.memcake;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-class SetCommand implements Command {
+class SetCommand extends Command {
     private final CompletableFuture<Version> result;
     private final byte[] key;
     private final int flags;
     private final int expires;
     private final byte[] value;
 
-    SetCommand(CompletableFuture<Version> result, byte[] key, int flags, int expires, byte[] value) {
+    SetCommand(CompletableFuture<Version> result, byte[] key, int flags, int expires, byte[] value, long timeout, TimeUnit unit) {
+        super(timeout, unit);
         this.result = result;
         this.key = key;
         this.flags = flags;

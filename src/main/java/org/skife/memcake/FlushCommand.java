@@ -3,13 +3,15 @@ package org.skife.memcake;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-class FlushCommand implements Command {
+class FlushCommand extends Command {
 
     private final CompletableFuture<Void> result;
     private final int expires;
 
-    FlushCommand(CompletableFuture<Void> result, int expires) {
+    FlushCommand(CompletableFuture<Void> result, int expires, long timeout, TimeUnit unit) {
+        super(timeout, unit);
         this.result = result;
         this.expires = expires;
     }

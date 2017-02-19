@@ -3,13 +3,15 @@ package org.skife.memcake;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-class GetCommand implements Command {
+class GetCommand extends Command {
 
     private final CompletableFuture<Optional<Value>> result;
     private final byte[] key;
 
-    GetCommand(CompletableFuture<Optional<Value>> result, byte[] key) {
+    GetCommand(CompletableFuture<Optional<Value>> result, byte[] key, long timeout, TimeUnit unit) {
+        super(timeout, unit);
         this.result = result;
         this.key = key;
     }

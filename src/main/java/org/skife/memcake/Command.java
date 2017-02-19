@@ -3,11 +3,21 @@ package org.skife.memcake;
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-interface Command {
-    Optional<Responder> createResponder(int opaque);
+abstract class Command {
 
-    void write(Connection conn, Integer opaque);
+    private final long timeout;
+    private final TimeUnit unit;
+
+    protected Command(long timeout, TimeUnit unit) {
+        this.timeout = timeout;
+        this.unit = unit;
+    }
+
+    abstract Optional<Responder> createResponder(int opaque);
+
+    abstract void write(Connection conn, Integer opaque);
 
     static void writeBuffer(final Connection conn, final ByteBuffer buffer) {
         conn.getChannel().write(buffer, buffer, new CompletionHandler<Integer, ByteBuffer>() {
@@ -25,5 +35,13 @@ interface Command {
                 conn.networkFailure(exc);
             }
         });
+    }
+
+    long getTimeout() {
+        return timeout;
+    }
+
+    TimeUnit getUnit() {
+        return unit;
     }
 }
