@@ -298,4 +298,8 @@ public class Connection implements AutoCloseable {
         return enqueue(new NoOpCommand(r, defaultTimeout, defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<String> version() {
+        CompletableFuture<String> r = new CompletableFuture<>();
+        return enqueue(new VersionCommand(r, defaultTimeout, defaultTimeoutUnit), r);
+    }
 }

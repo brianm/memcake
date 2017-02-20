@@ -120,6 +120,8 @@ class Response {
                         case Opcodes.decrement:
                             IncrementCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
+                        case Opcodes.version:
+                            VersionCommand.parseBody(Response.this, conn, bodyBuffer);
                         case Opcodes.flush:
                         case Opcodes.noop:
                         case Opcodes.set:

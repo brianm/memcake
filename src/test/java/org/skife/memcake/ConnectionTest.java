@@ -214,4 +214,10 @@ public class ConnectionTest {
         assertThat(set.get(1, TimeUnit.MILLISECONDS)).isEmpty();
     }
 
+    @Test
+    public void testVersion() throws Exception {
+        String version = c.version().get();
+        assertThat(version).isNotNull().isNotEmpty();
+    }
+
 }

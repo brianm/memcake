@@ -12,6 +12,7 @@ class Opcodes {
     static final byte flush = 0x08;
     static final byte getq = 0x09;
     static final byte noop = 0x0a;
+    static final byte version = 0x0b;
 
     static final byte deleteq = 0x14;
 }
