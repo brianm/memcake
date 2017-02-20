@@ -179,6 +179,7 @@ public class Connection implements AutoCloseable {
     public void close() {
         if (open.compareAndSet(true, false)) {
             try {
+                quit().get();
                 channel.close();
             } catch (Exception e) {
                 // close quietly
@@ -277,5 +278,14 @@ public class Connection implements AutoCloseable {
     public CompletableFuture<Counter> decrement(byte[] key, long delta, long initial, int expiration) {
         CompletableFuture<Counter> r = new CompletableFuture<>();
         return enqueue(new DecrementCommand(r, key, delta, initial, expiration, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Void> quit() {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new QuitCommand(r, this, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public boolean isOpen() {
+        return open.get();
     }
 }

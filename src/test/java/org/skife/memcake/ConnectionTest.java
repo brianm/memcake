@@ -47,8 +47,8 @@ public class ConnectionTest {
 
     @After
     public void tearDown() throws Exception {
-        cron.shutdown();
         c.close();
+        cron.shutdown();
     }
 
     @Property
@@ -198,6 +198,12 @@ public class ConnectionTest {
         assertThat(one.getValue()).isEqualTo(initial);
         Counter two = c.decrement(entry.key(), delta, initial, 0).get();
         assertThat(two.getValue()).isEqualTo(delta > initial ? 0 : initial - delta);
+    }
+
+    @Test
+    public void testQuit() throws Exception {
+        c.quit().get();
+        assertThat(c.isOpen()).isFalse();
     }
 
 }

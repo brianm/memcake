@@ -126,6 +126,7 @@ class Response {
                         case Opcodes.delete:
                         case Opcodes.deleteq:
                         case Opcodes.replace:
+                        case Opcodes.quit:
                             // these command never have bodies
                             conn.receive(Response.this);
                             break;
