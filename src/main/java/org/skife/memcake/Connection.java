@@ -180,8 +180,12 @@ public class Connection implements AutoCloseable {
         if (open.compareAndSet(true, false)) {
             try {
                 quit().get();
-                channel.close();
             } catch (Exception e) {
+                // close quietly
+            }
+            try {
+                channel.close();
+            } catch (IOException e) {
                 // close quietly
             }
         }
