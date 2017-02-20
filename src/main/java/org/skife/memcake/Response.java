@@ -117,6 +117,7 @@ class Response {
                             GetCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.increment:
+                        case Opcodes.decrement:
                             IncrementCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.flush:

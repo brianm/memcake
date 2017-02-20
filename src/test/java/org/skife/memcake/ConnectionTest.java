@@ -1,6 +1,7 @@
 package org.skife.memcake;
 
 import com.pholser.junit.quickcheck.Property;
+import com.pholser.junit.quickcheck.generator.InRange;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.After;
@@ -180,11 +181,23 @@ public class ConnectionTest {
     }
 
     @Property
-    public void increment(Entry entry, long delta, long initial) throws Exception {
+    public void increment(Entry entry,
+                          @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long delta,
+                          @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long initial) throws Exception {
         Counter one = c.increment(entry.key(), delta, initial, 0).get();
         assertThat(one.getValue()).isEqualTo(initial);
         Counter two = c.increment(entry.key(), delta, initial, 0).get();
         assertThat(two.getValue()).isEqualTo(initial + delta);
+    }
+
+    @Property
+    public void decrement(Entry entry,
+                          @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long delta,
+                          @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long initial) throws Exception {
+        Counter one = c.decrement(entry.key(), delta, initial, 0).get();
+        assertThat(one.getValue()).isEqualTo(initial);
+        Counter two = c.decrement(entry.key(), delta, initial, 0).get();
+        assertThat(two.getValue()).isEqualTo(delta > initial ? 0 : initial - delta);
     }
 
 }
