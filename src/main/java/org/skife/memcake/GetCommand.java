@@ -30,7 +30,10 @@ class GetCommand extends Command {
 
             switch (r.getStatus()) {
                 case 0:
-                    result.complete(Optional.of(new Value(new Version(r.getVersion()), r.getFlags(), r.getValue())));
+                    result.complete(Optional.of(new Value(new Version(r.getVersion()),
+                                                          r.getFlags(),
+                                                          Optional.ofNullable(r.getKey()),
+                                                          r.getValue())));
                     break;
                 case 1:
                     result.complete(Optional.empty());

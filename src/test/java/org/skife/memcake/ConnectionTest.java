@@ -64,6 +64,7 @@ public class ConnectionTest {
         assertThat(v).isPresent();
         assertThat(v.get().getVersion()).isEqualTo(cas);
         assertThat(v.get().getValue()).isEqualTo(entry.value());
+        assertThat(v.get().getKey()).isEmpty();
     }
 
     @Property(trials = 10)
@@ -218,6 +219,14 @@ public class ConnectionTest {
     public void testVersion() throws Exception {
         String version = c.version().get();
         assertThat(version).isNotNull().isNotEmpty();
+    }
+
+    @Property
+    public void getkIncludesKeyOnValue(Entry e) throws Exception {
+        c.set(e.key(), 0, 0, e.value()).get();
+        Value v =  c.getk(e.key()).get().get();
+        assertThat(v.getKey()).isPresent();
+        assertThat(v.getKey().get()).isEqualTo(e.key());
     }
 
 }
