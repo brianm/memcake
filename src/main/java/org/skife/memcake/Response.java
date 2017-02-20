@@ -121,6 +121,7 @@ class Response {
                             IncrementCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.flush:
+                        case Opcodes.noop:
                         case Opcodes.set:
                         case Opcodes.add:
                         case Opcodes.delete:

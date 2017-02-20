@@ -206,4 +206,12 @@ public class ConnectionTest {
         assertThat(c.isOpen()).isFalse();
     }
 
+    @Property
+    public void testNoOpPushesQuietsThrough(Entry e) throws Exception {
+        CompletableFuture<Optional<Value>> set =  c.getq(e.key());
+        CompletableFuture<Void> noop =  c.noop();
+        noop.get();
+        assertThat(set.get(1, TimeUnit.MILLISECONDS)).isEmpty();
+    }
+
 }

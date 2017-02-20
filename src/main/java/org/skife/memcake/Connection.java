@@ -176,6 +176,10 @@ public class Connection implements AutoCloseable {
         waiting.clear();
     }
 
+    public boolean isOpen() {
+        return open.get();
+    }
+
     public void close() {
         if (open.compareAndSet(true, false)) {
             try {
@@ -289,7 +293,9 @@ public class Connection implements AutoCloseable {
         return enqueue(new QuitCommand(r, this, defaultTimeout, defaultTimeoutUnit), r);
     }
 
-    public boolean isOpen() {
-        return open.get();
+    public CompletableFuture<Void> noop() {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new NoOpCommand(r, defaultTimeout, defaultTimeoutUnit), r);
     }
+
 }
