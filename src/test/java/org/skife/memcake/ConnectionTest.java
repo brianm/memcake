@@ -229,4 +229,13 @@ public class ConnectionTest {
         assertThat(v.getKey().get()).isEqualTo(e.key());
     }
 
+    @Property
+    public void testGetKeyQuietly(Entry e) throws Exception {
+        c.set(e.key(), 0, 0, e.value()).get();
+        CompletableFuture<Optional<Value>> one = c.getkq(e.key());
+        c.noop().get();
+        Optional<Value> v = one.get();
+        assertThat(v).isPresent();
+    }
+
 }

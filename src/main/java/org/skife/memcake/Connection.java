@@ -242,10 +242,15 @@ public class Connection implements AutoCloseable {
         CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
         return enqueue(new GetCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
-    
+
     public CompletableFuture<Optional<Value>> getk(byte[] key) {
         CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
         return enqueue(new GetKCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Optional<Value>> getkq(byte[] key) {
+        CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
+        return enqueue(new GetKQuietCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Optional<Value>> getq(byte[] key) {

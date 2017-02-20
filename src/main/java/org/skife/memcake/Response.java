@@ -115,6 +115,7 @@ class Response {
                         case Opcodes.get:
                         case Opcodes.getq:
                         case Opcodes.getk:
+                        case Opcodes.getkq:
                             GetCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.increment:
