@@ -120,6 +120,22 @@ public class ConnectionTest {
                 .hasCauseInstanceOf(StatusException.class);
     }
 
+    @Property
+    public void setFailsWithIncorrectCas(Entry one, Entry two, Entry three) throws Exception {
+        Version initial = c.set(one.key(), 0, 0, one.value()).get();
+        c.set(one.key(), 0, 0, two.value());
+        CompletableFuture<Version> shouldFail = c.set(one.key(), 0, 0, three.value(), initial);
+        assertThatThrownBy(shouldFail::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Property
+    public void replaceFailsWithIncorrectCas(Entry one, Entry two, Entry three) throws Exception {
+        Version initial = c.set(one.key(), 0, 0, one.value()).get();
+        c.replace(one.key(), 0, 0, two.value());
+        CompletableFuture<Version> shouldFail = c.replace(one.key(), 0, 0, three.value(), initial);
+        assertThatThrownBy(shouldFail::get).hasCauseInstanceOf(StatusException.class);
+    }
+
     @Test
     public void testFlush() throws Exception {
         c.set("hello".getBytes(StandardCharsets.UTF_8),

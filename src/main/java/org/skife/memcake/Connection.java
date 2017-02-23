@@ -260,7 +260,12 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new SetCommand(r, key, flags, expires, value, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version casToken) {
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new SetCommand(r, key, flags, expires, value, Optional.of(casToken), defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
@@ -270,7 +275,12 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new ReplaceCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new ReplaceCommand(r, key, flags, expires, value, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Version cas) {
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new ReplaceCommand(r, key, flags, expires, value, Optional.of(cas), defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> flush(int expires) {

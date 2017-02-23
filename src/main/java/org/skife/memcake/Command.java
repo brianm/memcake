@@ -19,7 +19,7 @@ abstract class Command {
     byte extraLength() { return 0;}
     char keyLength() { return 0;}
     int bodyLength() { return 0;}
-    int cas() { return 0;}
+    long cas() { return 0;}
     void writeBody(ByteBuffer buffer) {}
 
     void write(Connection conn, Integer opaque) {

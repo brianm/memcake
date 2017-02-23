@@ -1,6 +1,7 @@
 package org.skife.memcake;
 
 public class Version {
+    static final Version ZERO = new Version(0);
     private final long version;
 
     Version(long version) {
@@ -23,4 +24,7 @@ public class Version {
     }
 
 
+    long token() {
+        return version;
+    }
 }
