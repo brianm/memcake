@@ -134,6 +134,7 @@ class Response {
                         case Opcodes.replace:
                         case Opcodes.quit:
                         case Opcodes.append:
+                        case Opcodes.prepend:
                             // these command never have bodies
                             conn.receive(Response.this);
                             break;

@@ -327,4 +327,9 @@ public class Connection implements AutoCloseable {
         CompletableFuture<Version> r = new CompletableFuture<>();
         return enqueue(new AppendCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
     }
+
+    public CompletableFuture<Version> prepend(byte[] key, byte[] value) {
+        CompletableFuture<Version> r = new CompletableFuture<>();
+        return enqueue(new PrependCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+    }
 }

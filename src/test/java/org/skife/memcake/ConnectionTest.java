@@ -262,4 +262,12 @@ public class ConnectionTest {
         assertThat(v.getValue()).isEqualTo(new byte[] {0, 1});
     }
 
+    @Property
+    public void checkPrependPrepends(Entry entry) throws Exception {
+        c.set(entry.key(), 0, 0, new byte[]{0});
+        c.prepend(entry.key(), new byte[]{1});
+        Value v = c.get(entry.key()).get().get();
+        assertThat(v.getValue()).isEqualTo(new byte[] {1, 0});
+    }
+
 }
