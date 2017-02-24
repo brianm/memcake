@@ -254,4 +254,12 @@ public class ConnectionTest {
         assertThat(v).isPresent();
     }
 
+    @Property
+    public void checkAppendAppends(Entry entry) throws Exception {
+        c.set(entry.key(), 0, 0, new byte[]{0});
+        c.append(entry.key(), new byte[]{1});
+        Value v = c.get(entry.key()).get().get();
+        assertThat(v.getValue()).isEqualTo(new byte[] {0, 1});
+    }
+
 }

@@ -43,4 +43,17 @@ class Responder {
             }
         });
     }
+
+    static Responder versioNResponder(CompletableFuture<Version> result, int opaque) {
+        return new Responder(opaque, result::completeExceptionally, (s) -> {
+            Response r = s.get(opaque);
+            if (r.getStatus() == 0) {
+                result.complete(new Version(r.getVersion()));
+            }
+            else {
+                result.completeExceptionally(new StatusException(r.getStatus(),
+                                                                 r.getError()));
+            }
+        });
+    }
 }

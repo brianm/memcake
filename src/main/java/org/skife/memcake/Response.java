@@ -124,6 +124,7 @@ class Response {
                             break;
                         case Opcodes.version:
                             VersionCommand.parseBody(Response.this, conn, bodyBuffer);
+                            break;
                         case Opcodes.flush:
                         case Opcodes.noop:
                         case Opcodes.set:
@@ -132,6 +133,7 @@ class Response {
                         case Opcodes.deleteq:
                         case Opcodes.replace:
                         case Opcodes.quit:
+                        case Opcodes.append:
                             // these command never have bodies
                             conn.receive(Response.this);
                             break;

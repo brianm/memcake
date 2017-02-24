@@ -32,16 +32,7 @@ class SetCommand extends Command {
 
     @Override
     public Responder createResponder(int opaque) {
-        return new Responder(opaque, result::completeExceptionally, (s) -> {
-            Response r = s.get(opaque);
-            if (r.getStatus() == 0) {
-                result.complete(new Version(r.getVersion()));
-            }
-            else {
-                result.completeExceptionally(new StatusException(r.getStatus(),
-                                                                 r.getError()));
-            }
-        });
+        return Responder.versioNResponder(result, opaque);
     }
 
     @Override
