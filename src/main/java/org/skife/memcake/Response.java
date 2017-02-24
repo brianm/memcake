@@ -98,6 +98,8 @@ class Response {
         return error.get();
     }
 
+    public byte getOpcode() { return opcode; }
+
     void readBody() {
         conn.getChannel().read(bodyBuffer, bodyBuffer, new CompletionHandler<Integer, ByteBuffer>() {
             @Override
@@ -112,6 +114,10 @@ class Response {
                 if (status == 0) {
                     // completed, process the body per message type
                     switch (opcode) {
+                        case Opcodes.stat:
+                            // stat is special, it needs to accumulate. What a pain.
+                            StatCommand.parseBody(Response.this, conn, bodyBuffer);
+                            break;
                         case Opcodes.get:
                         case Opcodes.getq:
                         case Opcodes.getk:

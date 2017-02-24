@@ -8,6 +8,7 @@ import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
@@ -215,7 +216,17 @@ public class Connection implements AutoCloseable {
             scoreboard.put(response.getOpaque(), response);
             Integer opaque = sc.completed(scoreboard);
             scoreboard.remove(opaque);
-            waiting.remove(opaque);
+            if (response.getOpcode() == Opcodes.stat) {
+                // stat is a pain, multiple reponses come back for single opaque
+                // so we need to special case it. BLARGH
+                if (response.getKey() == null || response.getKey().length == 0) {
+                    // there are more responses coming for this stat, DO NOT remove the waiting
+                    waiting.remove(opaque);
+                }
+            }
+            else {
+                waiting.remove(opaque);
+            }
         }
         Collection<Integer> quiets = quietProxies.remove(response.getOpaque());
         if (quiets != null) {
@@ -260,12 +271,26 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r, key, flags, expires, value, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new SetCommand(r,
+                                      key,
+                                      flags,
+                                      expires,
+                                      value,
+                                      Optional.empty(),
+                                      defaultTimeout,
+                                      defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version casToken) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r, key, flags, expires, value, Optional.of(casToken), defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new SetCommand(r,
+                                      key,
+                                      flags,
+                                      expires,
+                                      value,
+                                      Optional.of(casToken),
+                                      defaultTimeout,
+                                      defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
@@ -275,12 +300,26 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new ReplaceCommand(r, key, flags, expires, value, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new ReplaceCommand(r,
+                                          key,
+                                          flags,
+                                          expires,
+                                          value,
+                                          Optional.empty(),
+                                          defaultTimeout,
+                                          defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new ReplaceCommand(r, key, flags, expires, value, Optional.of(cas), defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new ReplaceCommand(r,
+                                          key,
+                                          flags,
+                                          expires,
+                                          value,
+                                          Optional.of(cas),
+                                          defaultTimeout,
+                                          defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> flush(int expires) {
@@ -331,5 +370,15 @@ public class Connection implements AutoCloseable {
     public CompletableFuture<Version> prepend(byte[] key, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
         return enqueue(new PrependCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Map<String, String>> stat() {
+        CompletableFuture<Map<String, String>> r = new CompletableFuture<>();
+        return enqueue(new StatCommand(r, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Map<String, String>> stat(String key) {
+        CompletableFuture<Map<String, String>> r = new CompletableFuture<>();
+        return enqueue(new StatCommand(r, Optional.of(key), defaultTimeout, defaultTimeoutUnit), r);
     }
 }

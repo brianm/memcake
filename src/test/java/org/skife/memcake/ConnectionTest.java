@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
@@ -225,8 +226,8 @@ public class ConnectionTest {
 
     @Property
     public void testNoOpPushesQuietsThrough(Entry e) throws Exception {
-        CompletableFuture<Optional<Value>> set =  c.getq(e.key());
-        CompletableFuture<Void> noop =  c.noop();
+        CompletableFuture<Optional<Value>> set = c.getq(e.key());
+        CompletableFuture<Void> noop = c.noop();
         noop.get();
         assertThat(set.get(1, TimeUnit.MILLISECONDS)).isEmpty();
     }
@@ -240,7 +241,7 @@ public class ConnectionTest {
     @Property
     public void getkIncludesKeyOnValue(Entry e) throws Exception {
         c.set(e.key(), 0, 0, e.value()).get();
-        Value v =  c.getk(e.key()).get().get();
+        Value v = c.getk(e.key()).get().get();
         assertThat(v.getKey()).isPresent();
         assertThat(v.getKey().get()).isEqualTo(e.key());
     }
@@ -259,7 +260,7 @@ public class ConnectionTest {
         c.set(entry.key(), 0, 0, new byte[]{0});
         c.append(entry.key(), new byte[]{1});
         Value v = c.get(entry.key()).get().get();
-        assertThat(v.getValue()).isEqualTo(new byte[] {0, 1});
+        assertThat(v.getValue()).isEqualTo(new byte[]{0, 1});
     }
 
     @Property
@@ -267,7 +268,24 @@ public class ConnectionTest {
         c.set(entry.key(), 0, 0, new byte[]{0});
         c.prepend(entry.key(), new byte[]{1});
         Value v = c.get(entry.key()).get().get();
-        assertThat(v.getValue()).isEqualTo(new byte[] {1, 0});
+        assertThat(v.getValue()).isEqualTo(new byte[]{1, 0});
+    }
+
+    @Test
+    public void testStat() throws Exception {
+        Map<String, String> stats = c.stat().get();
+        assertThat(stats).containsKey("pid")
+                         .containsKey("total_items");
+    }
+
+    @Test
+    public void testStatOnlyOne() throws Exception {
+        c.set("a".getBytes(), 0, 0, new byte[] {1});
+        c.set("b".getBytes(), 0, 0, new byte[] {1});
+        c.set("c".getBytes(), 0, 0, new byte[] {1});
+
+        Map<String, String> stats = c.stat("items").get();
+        assertThat(stats).containsEntry("items:1:number", "3");
     }
 
 }

@@ -17,6 +17,7 @@ class Opcodes {
     static final byte getkq = 0x0d;
     static final byte append = 0x0e;
     static final byte prepend = 0x0f;
+    static final byte stat = 0x10;
 
     static final byte deleteq = 0x14;
 }
