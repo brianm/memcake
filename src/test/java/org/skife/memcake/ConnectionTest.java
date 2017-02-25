@@ -324,4 +324,22 @@ public class ConnectionTest {
         assertThatThrownBy(rs::get).hasCauseInstanceOf(StatusException.class);
     }
 
+    @Property
+    public void checkReplaceReplaces(Entry one, Entry two) throws Exception {
+        c.addq(one.key(), 0, 0, one.value());
+        CompletableFuture<Void> rs = c.replaceq(one.key(), 0, 0, two.value());
+        Value v = c.get(one.key()).get().get();
+
+        assertThat(v.getValue()).isEqualTo(two.value());
+        rs.get();
+        assertThat(rs.isDone()).isTrue();
+    }
+
+    @Property
+    public void checkReplaceDoesNotReplaceIfNotThere(Entry one) throws Exception {
+        CompletableFuture<Void> rs = c.replaceq(one.key(), 0, 0, one.value());
+        c.noop().get();
+        assertThatThrownBy(rs::get).hasCauseInstanceOf(StatusException.class);
+    }
+
 }

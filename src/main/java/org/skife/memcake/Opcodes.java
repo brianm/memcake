@@ -20,6 +20,6 @@ class Opcodes {
     static final byte stat = 0x10;
     static final byte setq = 0x11;
     static final byte addq = 0x12;
-
+    static final byte replaceq = 0x13;
     static final byte deleteq = 0x14;
 }

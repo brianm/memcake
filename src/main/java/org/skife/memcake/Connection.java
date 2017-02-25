@@ -339,6 +339,18 @@ public class Connection implements AutoCloseable {
                                           defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new ReplaceQuietlyCommand(r,
+                                                 key,
+                                                 flags,
+                                                 expires,
+                                                 value,
+                                                 Optional.empty(),
+                                                 defaultTimeout,
+                                                 defaultTimeoutUnit), r);
+    }
+
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
         return enqueue(new ReplaceCommand(r,
@@ -349,6 +361,18 @@ public class Connection implements AutoCloseable {
                                           Optional.of(cas),
                                           defaultTimeout,
                                           defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value, Version cas) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new ReplaceQuietlyCommand(r,
+                                                 key,
+                                                 flags,
+                                                 expires,
+                                                 value,
+                                                 Optional.of(cas),
+                                                 defaultTimeout,
+                                                 defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> flush(int expires) {

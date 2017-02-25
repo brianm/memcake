@@ -140,6 +140,7 @@ class Response {
                         case Opcodes.delete:
                         case Opcodes.deleteq:
                         case Opcodes.replace:
+                        case Opcodes.replaceq:
                         case Opcodes.quit:
                         case Opcodes.append:
                         case Opcodes.prepend:
