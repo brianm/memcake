@@ -355,4 +355,17 @@ public class ConnectionTest {
         cnt = c.increment(entry.key(), 0, 0, 0).get();
         assertThat(cnt.getValue()).isEqualTo(initial + delta);
     }
+
+    @Property
+    public void checkDecrementQuietlyDecrements(Entry entry,
+                                                @InRange(minLong = 1, maxLong = 500) long delta,
+                                                @InRange(minLong = 1000, maxLong = 20000) long initial) throws Exception {
+        c.decrementq(entry.key(), 0, initial, 0);
+        Counter cnt = c.increment(entry.key(), 0, 0, 0).get();
+        assertThat(cnt.getValue()).isEqualTo(initial);
+
+        c.decrementq(entry.key(), delta, 0, 0);
+        cnt = c.increment(entry.key(), 0, 0, 0).get();
+        assertThat(cnt.getValue()).isEqualTo(initial - delta);
+    }
 }
