@@ -26,4 +26,5 @@ class Opcodes {
     static final byte decrementq = 0x16;
     static final byte quitq = 0x17;
     static final byte flushq = 0x18;
+    static final byte appendq = 0x19;
 }

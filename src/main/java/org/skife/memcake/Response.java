@@ -133,6 +133,7 @@ class Response {
                         case Opcodes.version:
                             VersionCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
+                        case Opcodes.appendq:
                         case Opcodes.flush:
                         case Opcodes.flushq:
                         case Opcodes.noop:

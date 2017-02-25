@@ -1,5 +1,7 @@
 package org.skife.memcake;
 
+import com.google.common.primitives.Bytes;
+import com.pholser.junit.quickcheck.From;
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.generator.InRange;
 import com.pholser.junit.quickcheck.generator.Size;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -382,5 +385,16 @@ public class ConnectionTest {
         c.flushq(0);
         Optional<Value> v = c.get(new byte[]{1}).get();
         assertThat(v).isEmpty();
+    }
+
+    @Property
+    public void checkAppendQuietly(@From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] key,
+                                   @From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] initial,
+                                   @From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] additional) throws Exception {
+        c.set(key, 0, 0, initial);
+        c.appendq(key, additional);
+        Value v = c.get(key).get().get();
+
+        assertThat(v.getValue()).isEqualTo(Bytes.concat(initial, additional));
     }
 }

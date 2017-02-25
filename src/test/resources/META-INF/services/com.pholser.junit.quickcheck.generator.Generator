@@ -1,1 +1,2 @@
-org.skife.memcake.EntryGenerator
+org.skife.memcake.EntryGen
+org.skife.memcake.ByteArrayGen

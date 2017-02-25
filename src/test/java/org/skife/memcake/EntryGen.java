@@ -4,9 +4,9 @@ import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
-public class EntryGenerator extends Generator<Entry> {
+public class EntryGen extends Generator<Entry> {
 
-    public EntryGenerator() {
+    public EntryGen() {
         super(Entry.class);
     }
 
