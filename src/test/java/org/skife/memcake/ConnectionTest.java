@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.in;
 
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
@@ -375,5 +374,13 @@ public class ConnectionTest {
         c.quitq();
         CompletableFuture<Void> noop = c.noop();
         assertThatThrownBy(noop::get).hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void testFlushQ() throws Exception {
+        c.set(new byte[]{1}, 0, 0, new byte[]{1});
+        c.flushq(0);
+        Optional<Value> v = c.get(new byte[]{1}).get();
+        assertThat(v).isEmpty();
     }
 }

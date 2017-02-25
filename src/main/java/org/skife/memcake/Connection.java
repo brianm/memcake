@@ -380,6 +380,11 @@ public class Connection implements AutoCloseable {
         return enqueue(new FlushCommand(r, expires, defaultTimeout, defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<Void> flushq(int expires) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new FlushQuietlyCommand(r, expires, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
     public CompletableFuture<Void> delete(byte[] key) {
         CompletableFuture<Void> r = new CompletableFuture<>();
         return enqueue(new DeleteCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
