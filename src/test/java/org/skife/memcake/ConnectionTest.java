@@ -295,4 +295,22 @@ public class ConnectionTest {
         assertThat(v.getValue()).isEqualTo(entry.value());
     }
 
+    @Property
+    public void checkSetQSetsWithCasSuccess(Entry one, Entry two) throws Exception {
+        Version cas = c.set(one.key(), 0, 0, one.value()).get();
+        c.setq(one.key(), 0, 0, two.value(), cas);
+        Value v = c.get(one.key()).get().get();
+        assertThat(v.getValue()).isEqualTo(two.value());
+    }
+
+    @Property
+    public void checkSetQSetsWithCasFail(Entry one, Entry two, Entry three) throws Exception {
+        Version cas1 = c.set(one.key(), 0, 0, one.value()).get();
+        c.set(one.key(), 0, 0, two.value()).get();
+        CompletableFuture<Void> shouldFail = c.setq(one.key(), 0, 0, three.value(), cas1);
+        Value v = c.get(one.key()).get().get();
+        assertThat(v.getValue()).isEqualTo(two.value());
+        assertThatThrownBy(shouldFail::get).hasCauseInstanceOf(StatusException.class);
+    }
+
 }
