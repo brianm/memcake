@@ -1,6 +1,6 @@
 package org.skife.memcake;
 
-public class Version {
+public class Version implements Comparable<Version> {
     static final Version ZERO = new Version(0);
     private final long version;
 
@@ -24,7 +24,12 @@ public class Version {
     }
 
 
-    long token() {
+    public long token() {
         return version;
+    }
+
+    @Override
+    public int compareTo(Version o) {
+        return (int) (this.token() - o.token());
     }
 }
