@@ -457,6 +457,11 @@ public class Connection implements AutoCloseable {
         return enqueue(new PrependCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<Void> prependq(byte[] key, byte[] value) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new PrependQuietlyCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
     public CompletableFuture<Map<String, String>> stat() {
         CompletableFuture<Map<String, String>> r = new CompletableFuture<>();
         return enqueue(new StatCommand(r, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);

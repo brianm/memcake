@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -396,5 +395,16 @@ public class ConnectionTest {
         Value v = c.get(key).get().get();
 
         assertThat(v.getValue()).isEqualTo(Bytes.concat(initial, additional));
+    }
+
+    @Property
+    public void checkPrependQuietly(@From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] key,
+                                    @From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] initial,
+                                    @From(ByteArrayGen.class) @Size(min = 1, max = 100) byte[] additional) throws Exception {
+        c.set(key, 0, 0, initial);
+        c.prependq(key, additional);
+        Value v = c.get(key).get().get();
+
+        assertThat(v.getValue()).isEqualTo(Bytes.concat(additional, initial));
     }
 }

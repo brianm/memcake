@@ -134,6 +134,7 @@ class Response {
                             VersionCommand.parseBody(Response.this, conn, bodyBuffer);
                             break;
                         case Opcodes.appendq:
+                        case Opcodes.prependq:
                         case Opcodes.flush:
                         case Opcodes.flushq:
                         case Opcodes.noop:
