@@ -322,6 +322,11 @@ public class Connection implements AutoCloseable {
         return enqueue(new AddCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<Void> addq(byte[] key, int flags, int expires, byte[] value) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new AddQuietlyCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Version> r = new CompletableFuture<>();
         return enqueue(new ReplaceCommand(r,

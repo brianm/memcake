@@ -136,6 +136,7 @@ class Response {
                         case Opcodes.set:
                         case Opcodes.setq:
                         case Opcodes.add:
+                        case Opcodes.addq:
                         case Opcodes.delete:
                         case Opcodes.deleteq:
                         case Opcodes.replace:

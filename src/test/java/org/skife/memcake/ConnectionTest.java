@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.entry;
 
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
@@ -33,11 +32,10 @@ public class ConnectionTest {
     public static final MemcachedRule mc = new MemcachedRule();
 
     private Connection c;
-    private ScheduledExecutorService cron;
+    private static ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
 
     @Before
     public void setUp() throws Exception {
-        cron = Executors.newScheduledThreadPool(1);
         c = Connection.open(mc.getAddress(),
                             AsynchronousSocketChannel.open(),
                             cron, 1, TimeUnit.HOURS).get();
@@ -49,7 +47,6 @@ public class ConnectionTest {
     @After
     public void tearDown() throws Exception {
         c.close();
-        cron.shutdown();
     }
 
     @Property
@@ -311,6 +308,20 @@ public class ConnectionTest {
         Value v = c.get(one.key()).get().get();
         assertThat(v.getValue()).isEqualTo(two.value());
         assertThatThrownBy(shouldFail::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Property
+    public void checkAddQuietlyAddsIfMissing(Entry entry) throws Exception {
+        c.addq(entry.key(), 0, 0, entry.value());
+        assertThat(c.get(entry.key()).get().get().getValue()).isEqualTo(entry.value());
+    }
+
+    @Property
+    public void checkAddQuietlyDoesNotAddIfPressent(Entry existing, Entry entry) throws Exception {
+        c.addq(existing.key(), 0, 0, existing.value());
+        CompletableFuture<Void> rs = c.addq(existing.key(), 0, 0, entry.value());
+        assertThat(c.get(existing.key()).get().get().getValue()).isEqualTo(existing.value());
+        assertThatThrownBy(rs::get).hasCauseInstanceOf(StatusException.class);
     }
 
 }
