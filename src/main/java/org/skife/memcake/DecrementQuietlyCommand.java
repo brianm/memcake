@@ -15,6 +15,6 @@ class DecrementQuietlyCommand extends IncrementQuietlyCommand {
 
     @Override
     byte opcode() {
-        return Opcodes.deccrementq;
+        return Opcodes.decrementq;
     }
 }

@@ -457,4 +457,9 @@ public class Connection implements AutoCloseable {
         CompletableFuture<Map<String, String>> r = new CompletableFuture<>();
         return enqueue(new StatCommand(r, Optional.of(key), defaultTimeout, defaultTimeoutUnit), r);
     }
+
+    public CompletableFuture<Void> quitq() {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new QuitQuietlyCommand(r, defaultTimeout, defaultTimeoutUnit), r);
+    }
 }

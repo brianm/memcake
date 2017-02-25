@@ -10,6 +10,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -367,5 +368,12 @@ public class ConnectionTest {
         c.decrementq(entry.key(), delta, 0, 0);
         cnt = c.increment(entry.key(), 0, 0, 0).get();
         assertThat(cnt.getValue()).isEqualTo(initial - delta);
+    }
+
+    @Test
+    public void testQuitQuietly() throws Exception {
+        c.quitq();
+        CompletableFuture<Void> noop = c.noop();
+        assertThatThrownBy(noop::get).hasCauseInstanceOf(IOException.class);
     }
 }

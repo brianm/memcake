@@ -144,7 +144,7 @@ class Response {
                         case Opcodes.replace:
                         case Opcodes.replaceq:
                         case Opcodes.incrementq:
-                        case Opcodes.deccrementq:
+                        case Opcodes.decrementq:
                         case Opcodes.quit:
                         case Opcodes.append:
                         case Opcodes.prepend:

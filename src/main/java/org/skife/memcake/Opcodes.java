@@ -23,5 +23,6 @@ class Opcodes {
     static final byte replaceq = 0x13;
     static final byte deleteq = 0x14;
     static final byte incrementq = 0x15;
-    static final byte deccrementq = 0x16;
+    static final byte decrementq = 0x16;
+    static final byte quitq = 0x17;
 }
