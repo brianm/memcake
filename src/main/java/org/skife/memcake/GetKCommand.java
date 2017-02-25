@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class GetKCommand extends GetCommand {
+class GetKCommand extends GetCommand {
     GetKCommand(CompletableFuture<Optional<Value>> result,
                 byte[] key,
                 long timeout,
