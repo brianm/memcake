@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.in;
 
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
@@ -277,9 +278,9 @@ public class ConnectionTest {
 
     @Test
     public void testStatOnlyOne() throws Exception {
-        c.set("a".getBytes(), 0, 0, new byte[] {1});
-        c.set("b".getBytes(), 0, 0, new byte[] {1});
-        c.set("c".getBytes(), 0, 0, new byte[] {1});
+        c.set("a".getBytes(), 0, 0, new byte[]{1});
+        c.set("b".getBytes(), 0, 0, new byte[]{1});
+        c.set("c".getBytes(), 0, 0, new byte[]{1});
 
         Map<String, String> stats = c.stat("items").get();
         assertThat(stats).containsEntry("items:1:number", "3");
@@ -342,4 +343,16 @@ public class ConnectionTest {
         assertThatThrownBy(rs::get).hasCauseInstanceOf(StatusException.class);
     }
 
+    @Property
+    public void checkIncrementQuietlyIncrements(Entry entry,
+                                                @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long delta,
+                                                @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long initial) throws Exception {
+        c.incrementq(entry.key(), 0, initial, 0);
+        Counter cnt = c.increment(entry.key(), 0, 0, 0).get();
+        assertThat(cnt.getValue()).isEqualTo(initial);
+
+        c.incrementq(entry.key(), delta, 0, 0);
+        cnt = c.increment(entry.key(), 0, 0, 0).get();
+        assertThat(cnt.getValue()).isEqualTo(initial + delta);
+    }
 }

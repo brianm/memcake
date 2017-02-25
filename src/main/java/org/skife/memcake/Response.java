@@ -98,7 +98,9 @@ class Response {
         return error.get();
     }
 
-    public byte getOpcode() { return opcode; }
+    public byte getOpcode() {
+        return opcode;
+    }
 
     void readBody() {
         conn.getChannel().read(bodyBuffer, bodyBuffer, new CompletionHandler<Integer, ByteBuffer>() {
@@ -141,6 +143,7 @@ class Response {
                         case Opcodes.deleteq:
                         case Opcodes.replace:
                         case Opcodes.replaceq:
+                        case Opcodes.incrementq:
                         case Opcodes.quit:
                         case Opcodes.append:
                         case Opcodes.prepend:

@@ -31,10 +31,6 @@ class IncrementCommand extends Command {
     Responder createResponder(int opaque) {
         return new Responder(opaque, result::completeExceptionally, (s) -> {
             Response r = s.get(opaque);
-            if (isQuiet() && r == null) {
-                throw new UnsupportedOperationException("Quiet Increment not yet implemented");
-            }
-
             byte[] vbytes = r.getValue();
             if (vbytes.length != 8) {
                 result.completeExceptionally(new IllegalStateException("counter value was not a long (8 bytes!)"));
