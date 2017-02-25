@@ -134,6 +134,7 @@ class Response {
                         case Opcodes.flush:
                         case Opcodes.noop:
                         case Opcodes.set:
+                        case Opcodes.setq:
                         case Opcodes.add:
                         case Opcodes.delete:
                         case Opcodes.deleteq:

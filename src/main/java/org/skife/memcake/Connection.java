@@ -281,6 +281,18 @@ public class Connection implements AutoCloseable {
                                       defaultTimeoutUnit), r);
     }
 
+    public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new SetQuietlyCommand(r,
+                                             key,
+                                             flags,
+                                             expires,
+                                             value,
+                                             Optional.empty(),
+                                             defaultTimeout,
+                                             defaultTimeoutUnit), r);
+    }
+
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version casToken) {
         CompletableFuture<Version> r = new CompletableFuture<>();
         return enqueue(new SetCommand(r,
@@ -377,6 +389,7 @@ public class Connection implements AutoCloseable {
         return enqueue(new StatCommand(r, Optional.empty(), defaultTimeout, defaultTimeoutUnit), r);
     }
 
+    //Fetch
     public CompletableFuture<Map<String, String>> stat(String key) {
         CompletableFuture<Map<String, String>> r = new CompletableFuture<>();
         return enqueue(new StatCommand(r, Optional.of(key), defaultTimeout, defaultTimeoutUnit), r);

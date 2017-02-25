@@ -36,7 +36,7 @@ class AppendCommand extends Command {
 
     @Override
     Responder createResponder(int opaque) {
-        return Responder.versioNResponder(result, opaque);
+        return Responder.versionResponder(result, opaque);
     }
 
     @Override

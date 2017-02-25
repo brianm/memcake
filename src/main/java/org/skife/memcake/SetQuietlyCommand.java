@@ -5,39 +5,44 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-class SetCommand extends Command {
-    private final CompletableFuture<Version> result;
+class SetQuietlyCommand extends Command {
+    private final CompletableFuture<Void> r;
     private final byte[] key;
     private final int flags;
     private final int expires;
     private final byte[] value;
-    private final Optional<Version> casToken;
+    private final Optional<Version> cas;
 
-    SetCommand(CompletableFuture<Version> result,
-               byte[] key,
-               int flags,
-               int expires,
-               byte[] value,
-               Optional<Version> casToken,
-               long timeout,
-               TimeUnit unit) {
-        super(timeout, unit);
-        this.result = result;
+    SetQuietlyCommand(CompletableFuture<Void> r,
+                      byte[] key,
+                      int flags,
+                      int expires,
+                      byte[] value,
+                      Optional<Version> cas,
+                      long defaultTimeout,
+                      TimeUnit defaultTimeoutUnit) {
+       super(defaultTimeout, defaultTimeoutUnit);
+        this.r = r;
         this.key = key;
         this.flags = flags;
         this.expires = expires;
         this.value = value;
-        this.casToken = casToken;
-    }
-
-    @Override
-    public Responder createResponder(int opaque) {
-        return Responder.versionResponder(result, opaque);
+        this.cas = cas;
     }
 
     @Override
     long cas() {
-        return casToken.orElse(Version.ZERO).token();
+        return cas.orElse(Version.ZERO).token();
+    }
+
+    @Override
+    Responder createResponder(int opaque) {
+        return Responder.voidResponder(this, r, opaque);
+    }
+
+    @Override
+    boolean isQuiet() {
+        return true;
     }
 
     @Override
@@ -62,9 +67,8 @@ class SetCommand extends Command {
         buffer.put(key);
         buffer.put(value);
     }
-
     @Override
     byte opcode() {
-        return Opcodes.set;
+        return Opcodes.setq;
     }
 }

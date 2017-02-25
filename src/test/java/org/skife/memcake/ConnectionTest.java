@@ -288,4 +288,11 @@ public class ConnectionTest {
         assertThat(stats).containsEntry("items:1:number", "3");
     }
 
+    @Property
+    public void checkSetQSetsWithoutCas(Entry entry) throws Exception {
+        c.setq(entry.key(), 0, 0, entry.value());
+        Value v = c.get(entry.key()).get().get();
+        assertThat(v.getValue()).isEqualTo(entry.value());
+    }
+
 }
