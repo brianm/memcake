@@ -11,12 +11,14 @@ class IncrementCommand extends Command {
     private final long delta;
     private final long initial;
     private final int expiration;
+    private final Version cas;
 
     IncrementCommand(CompletableFuture<Counter> result,
                      byte[] key,
                      long delta,
                      long initial,
                      int expiration,
+                     Version cas,
                      long timeout,
                      TimeUnit unit) {
         super(timeout, unit);
@@ -25,6 +27,7 @@ class IncrementCommand extends Command {
         this.delta = delta;
         this.initial = initial;
         this.expiration = expiration;
+        this.cas = cas;
     }
 
     @Override
@@ -58,6 +61,11 @@ class IncrementCommand extends Command {
         buffer.putLong(initial);
         buffer.putInt(expiration);
         buffer.put(key);
+    }
+
+    @Override
+    long cas() {
+        return cas.token();
     }
 
     @Override

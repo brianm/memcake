@@ -282,9 +282,9 @@ public class Connection implements AutoCloseable {
         return enqueue(new SetQuietCommand(r, key, flags, expires, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
-    public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version casToken) {
+    public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r, key, flags, expires, value, casToken, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new SetCommand(r, key, flags, expires, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
@@ -351,9 +351,21 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration) {
-        CompletableFuture<Counter> r = new CompletableFuture<>();
-        return enqueue(new IncrementCommand(r, key, delta, initial, expiration, defaultTimeout, defaultTimeoutUnit), r);
+        return increment(key, delta, initial, expiration, Version.ZERO);
     }
+
+    public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration, Version cas) {
+        CompletableFuture<Counter> r = new CompletableFuture<>();
+        return enqueue(new IncrementCommand(r,
+                                            key,
+                                            delta,
+                                            initial,
+                                            expiration,
+                                            cas,
+                                            defaultTimeout,
+                                            defaultTimeoutUnit), r);
+    }
+
 
     public CompletableFuture<Void> incrementq(byte[] key, long delta, long initial, int expiration) {
         CompletableFuture<Void> r = new CompletableFuture<>();
@@ -378,8 +390,20 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Counter> decrement(byte[] key, long delta, long initial, int expiration) {
+        return decrement(key, delta, initial, expiration, Version.ZERO);
+    }
+
+
+    public CompletableFuture<Counter> decrement(byte[] key, long delta, long initial, int expiration, Version cas) {
         CompletableFuture<Counter> r = new CompletableFuture<>();
-        return enqueue(new DecrementCommand(r, key, delta, initial, expiration, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new DecrementCommand(r,
+                                            key,
+                                            delta,
+                                            initial,
+                                            expiration,
+                                            cas,
+                                            defaultTimeout,
+                                            defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> quit() {

@@ -9,8 +9,10 @@ class DecrementCommand extends IncrementCommand {
                      byte[] key,
                      long delta,
                      long initial,
-                     int expiration, long timeout, TimeUnit unit) {
-        super(result, key, delta, initial, expiration, timeout, unit);
+                     int expiration,
+                     Version cas,
+                     long timeout, TimeUnit unit) {
+        super(result, key, delta, initial, expiration, cas, timeout, unit);
     }
 
     @Override
