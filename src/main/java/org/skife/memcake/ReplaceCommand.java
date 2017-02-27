@@ -11,7 +11,7 @@ class ReplaceCommand extends SetCommand {
                    int flags,
                    int expires,
                    byte[] value,
-                   Optional<Version> casToken,
+                   Version casToken,
                    long timeout,
                    TimeUnit unit) {
         super(result, key, flags, expires, value, casToken, timeout, unit);

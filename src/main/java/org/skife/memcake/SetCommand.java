@@ -1,7 +1,6 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -11,14 +10,14 @@ class SetCommand extends Command {
     private final int flags;
     private final int expires;
     private final byte[] value;
-    private final Optional<Version> casToken;
+    private final Version casToken;
 
     SetCommand(CompletableFuture<Version> result,
                byte[] key,
                int flags,
                int expires,
                byte[] value,
-               Optional<Version> casToken,
+               Version casToken,
                long timeout,
                TimeUnit unit) {
         super(timeout, unit);
@@ -37,7 +36,7 @@ class SetCommand extends Command {
 
     @Override
     long cas() {
-        return casToken.orElse(Version.ZERO).token();
+        return casToken.token();
     }
 
     @Override

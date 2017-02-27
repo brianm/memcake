@@ -1,27 +1,26 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-class SetQuietlyCommand extends Command {
+class SetQuietCommand extends Command {
     private final CompletableFuture<Void> r;
     private final byte[] key;
     private final int flags;
     private final int expires;
     private final byte[] value;
-    private final Optional<Version> cas;
+    private final Version cas;
 
-    SetQuietlyCommand(CompletableFuture<Void> r,
-                      byte[] key,
-                      int flags,
-                      int expires,
-                      byte[] value,
-                      Optional<Version> cas,
-                      long defaultTimeout,
-                      TimeUnit defaultTimeoutUnit) {
-       super(defaultTimeout, defaultTimeoutUnit);
+    SetQuietCommand(CompletableFuture<Void> r,
+                    byte[] key,
+                    int flags,
+                    int expires,
+                    byte[] value,
+                    Version cas,
+                    long defaultTimeout,
+                    TimeUnit defaultTimeoutUnit) {
+        super(defaultTimeout, defaultTimeoutUnit);
         this.r = r;
         this.key = key;
         this.flags = flags;
@@ -32,7 +31,7 @@ class SetQuietlyCommand extends Command {
 
     @Override
     long cas() {
-        return cas.orElse(Version.ZERO).token();
+        return cas.token();
     }
 
     @Override
@@ -67,6 +66,7 @@ class SetQuietlyCommand extends Command {
         buffer.put(key);
         buffer.put(value);
     }
+
     @Override
     byte opcode() {
         return Opcodes.setq;

@@ -270,51 +270,21 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r,
-                                      key,
-                                      flags,
-                                      expires,
-                                      value,
-                                      Optional.empty(),
-                                      defaultTimeout,
-                                      defaultTimeoutUnit), r);
+        return set(key, flags, expires, value, Version.ZERO);
     }
 
     public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new SetQuietlyCommand(r,
-                                             key,
-                                             flags,
-                                             expires,
-                                             value,
-                                             Optional.empty(),
-                                             defaultTimeout,
-                                             defaultTimeoutUnit), r);
+        return setq(key, flags, expires, value, Version.ZERO);
     }
 
-    public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value, Version casToken) {
+    public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new SetQuietlyCommand(r,
-                                             key,
-                                             flags,
-                                             expires,
-                                             value,
-                                             Optional.of(casToken),
-                                             defaultTimeout,
-                                             defaultTimeoutUnit), r);
+        return enqueue(new SetQuietCommand(r, key, flags, expires, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Version casToken) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new SetCommand(r,
-                                      key,
-                                      flags,
-                                      expires,
-                                      value,
-                                      Optional.of(casToken),
-                                      defaultTimeout,
-                                      defaultTimeoutUnit), r);
+        return enqueue(new SetCommand(r, key, flags, expires, value, casToken, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> add(byte[] key, int flags, int expires, byte[] value) {
@@ -324,55 +294,32 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Void> addq(byte[] key, int flags, int expires, byte[] value) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new AddQuietlyCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new AddQuietCommand(r, key, flags, expires, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new ReplaceCommand(r,
-                                          key,
-                                          flags,
-                                          expires,
-                                          value,
-                                          Optional.empty(),
-                                          defaultTimeout,
-                                          defaultTimeoutUnit), r);
+        return replace(key, flags, expires, value, Version.ZERO);
     }
 
     public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value) {
-        CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new ReplaceQuietlyCommand(r,
-                                                 key,
-                                                 flags,
-                                                 expires,
-                                                 value,
-                                                 Optional.empty(),
-                                                 defaultTimeout,
-                                                 defaultTimeoutUnit), r);
+        return replaceq(key, flags, expires, value, Version.ZERO);
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new ReplaceCommand(r,
-                                          key,
-                                          flags,
-                                          expires,
-                                          value,
-                                          Optional.of(cas),
-                                          defaultTimeout,
-                                          defaultTimeoutUnit), r);
+        return enqueue(new ReplaceCommand(r, key, flags, expires, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new ReplaceQuietlyCommand(r,
-                                                 key,
-                                                 flags,
-                                                 expires,
-                                                 value,
-                                                 Optional.of(cas),
-                                                 defaultTimeout,
-                                                 defaultTimeoutUnit), r);
+        return enqueue(new ReplaceQuietCommand(r,
+                                               key,
+                                               flags,
+                                               expires,
+                                               value,
+                                               cas,
+                                               defaultTimeout,
+                                               defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> flush(int expires) {
@@ -450,9 +397,13 @@ public class Connection implements AutoCloseable {
         return enqueue(new VersionCommand(r, defaultTimeout, defaultTimeoutUnit), r);
     }
 
-    public CompletableFuture<Version> append(byte[] key, byte[] value) {
+    public CompletableFuture<Version> append(byte[] key, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new AppendCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new AppendCommand(r, key, value, cas, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Version> append(byte[] key, byte[] value) {
+        return append(key, value, Version.ZERO);
     }
 
     public CompletableFuture<Void> appendq(byte[] key, byte[] value) {
@@ -460,9 +411,13 @@ public class Connection implements AutoCloseable {
         return enqueue(new AppendQuietlyCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
     }
 
-    public CompletableFuture<Version> prepend(byte[] key, byte[] value) {
+    public CompletableFuture<Version> prepend(byte[] key, byte[] value, Version cas) {
         CompletableFuture<Version> r = new CompletableFuture<>();
-        return enqueue(new PrependCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new PrependCommand(r, key, value, cas, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Version> prepend(byte[] key, byte[] value) {
+        return prepend(key, value, Version.ZERO);
     }
 
     public CompletableFuture<Void> prependq(byte[] key, byte[] value) {

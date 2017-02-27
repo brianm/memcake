@@ -7,9 +7,10 @@ class PrependCommand extends AppendCommand {
     PrependCommand(CompletableFuture<Version> result,
                    byte[] key,
                    byte[] value,
+                   Version cas,
                    long timeout,
                    TimeUnit unit) {
-        super(result, key, value, timeout, unit);
+        super(result, key, value, cas, timeout, unit);
     }
 
     @Override
