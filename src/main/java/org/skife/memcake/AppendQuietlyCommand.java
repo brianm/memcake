@@ -8,16 +8,19 @@ class AppendQuietlyCommand extends Command {
     private final CompletableFuture<Void> result;
     private final byte[] key;
     private final byte[] value;
+    private final Version cas;
 
     AppendQuietlyCommand(CompletableFuture<Void> result,
                          byte[] key,
                          byte[] value,
+                         Version cas,
                          long timeout,
                          TimeUnit timeoutUnit) {
         super(timeout, timeoutUnit);
         this.result = result;
         this.key = key;
         this.value = value;
+        this.cas = cas;
     }
 
     @Override
@@ -44,5 +47,10 @@ class AppendQuietlyCommand extends Command {
     @Override
     char keyLength() {
         return (char) key.length;
+    }
+
+    @Override
+    long cas() {
+        return cas.token();
     }
 }

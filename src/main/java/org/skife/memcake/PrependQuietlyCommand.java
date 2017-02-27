@@ -7,9 +7,10 @@ class PrependQuietlyCommand extends AppendQuietlyCommand {
     PrependQuietlyCommand(CompletableFuture<Void> result,
                           byte[] key,
                           byte[] value,
+                          Version cas,
                           long timeout,
                           TimeUnit timeoutUnit) {
-        super(result, key, value, timeout, timeoutUnit);
+        super(result, key, value, cas, timeout, timeoutUnit);
     }
 
     @Override

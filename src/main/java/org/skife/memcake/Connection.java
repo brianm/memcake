@@ -440,8 +440,12 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> appendq(byte[] key, byte[] value) {
+        return appendq(key, value, Version.ZERO);
+    }
+
+    public CompletableFuture<Void> appendq(byte[] key, byte[] value, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new AppendQuietlyCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new AppendQuietlyCommand(r, key, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Version> prepend(byte[] key, byte[] value, Version cas) {
@@ -454,8 +458,12 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> prependq(byte[] key, byte[] value) {
+        return prependq(key, value, Version.ZERO);
+    }
+
+    public CompletableFuture<Void> prependq(byte[] key, byte[] value, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new PrependQuietlyCommand(r, key, value, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new PrependQuietlyCommand(r, key, value, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Map<String, String>> stat() {
