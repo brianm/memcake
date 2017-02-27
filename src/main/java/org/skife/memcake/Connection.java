@@ -385,14 +385,22 @@ public class Connection implements AutoCloseable {
         return enqueue(new FlushQuietlyCommand(r, expires, defaultTimeout, defaultTimeoutUnit), r);
     }
 
-    public CompletableFuture<Void> delete(byte[] key) {
+    public CompletableFuture<Void> delete(byte[] key, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new DeleteCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
+        return enqueue(new DeleteCommand(r, key, cas, defaultTimeout, defaultTimeoutUnit), r);
+    }
+
+    public CompletableFuture<Void> delete(byte[] key) {
+        return delete(key, Version.ZERO);
+    }
+
+    public CompletableFuture<Void> deleteq(byte[] key, Version cas) {
+        CompletableFuture<Void> r = new CompletableFuture<>();
+        return enqueue(new DeleteQuietlyCommand(r, key, cas, defaultTimeout, defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> deleteq(byte[] key) {
-        CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new DeleteQuietlyCommand(r, key, defaultTimeout, defaultTimeoutUnit), r);
+        return delete(key, Version.ZERO);
     }
 
     public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration) {

@@ -192,6 +192,20 @@ public class ConnectionTest {
     }
 
     @Property
+    public void deleteWithCasSuccess(Entry one) throws Exception {
+        Version v = c.set(one.key(), 0, 0, one.value()).get();
+        c.delete(one.key(), v).get();
+        assertThat(c.get(one.key()).get()).isEmpty();
+    }
+
+    @Property
+    public void deleteWithCasFailure(Entry one, @From(ByteArrayGen.class) byte[] val2) throws Exception {
+        Version v = c.set(one.key(), 0, 0, one.value()).get();
+        c.replace(one.key(), 0, 0, val2);
+        assertThatThrownBy(() -> c.delete(one.key(), v).get()).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Property
     public void deleteQuietly(Entry e) throws Exception {
         c.set(e.key(), 0, 0, e.value()).get();
         c.deleteq(e.key());

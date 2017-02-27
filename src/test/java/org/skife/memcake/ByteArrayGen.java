@@ -6,8 +6,8 @@ import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
 public class ByteArrayGen extends Generator<byte[]> {
-    private int min;
-    private int max;
+    private int min = 1;
+    private int max = Character.MAX_VALUE;
 
     public ByteArrayGen() {
         super(byte[].class);

@@ -8,11 +8,17 @@ class DeleteCommand extends Command {
 
     private final CompletableFuture<Void> result;
     private final byte[] key;
+    private final Version cas;
 
-    DeleteCommand(CompletableFuture<Void> result, byte[] key, long timeout, TimeUnit unit) {
+    DeleteCommand(CompletableFuture<Void> result,
+                  byte[] key,
+                  Version cas,
+                  long timeout,
+                  TimeUnit unit) {
         super(timeout, unit);
         this.result = result;
         this.key = key;
+        this.cas = cas;
     }
 
     @Override
@@ -33,5 +39,10 @@ class DeleteCommand extends Command {
     @Override
     byte opcode() {
         return Opcodes.delete;
+    }
+
+    @Override
+    long cas() {
+        return cas.token();
     }
 }

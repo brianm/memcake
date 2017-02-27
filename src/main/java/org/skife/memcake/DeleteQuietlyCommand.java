@@ -6,9 +6,10 @@ import java.util.concurrent.TimeUnit;
 class DeleteQuietlyCommand extends DeleteCommand {
     DeleteQuietlyCommand(CompletableFuture<Void> result,
                          byte[] key,
+                         Version version,
                          long timeout,
                          TimeUnit unit) {
-        super(result, key, timeout, unit);
+        super(result, key, version, timeout, unit);
     }
 
     @Override
