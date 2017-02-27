@@ -9,8 +9,10 @@ class DecrementQuietlyCommand extends IncrementQuietlyCommand {
                             byte[] key,
                             long delta,
                             long initial,
-                            int expiration, long timeout, TimeUnit timeoutUnit) {
-        super(result, key, delta, initial, expiration, timeout, timeoutUnit);
+                            int expiration,
+                            Version cas,
+                            long timeout, TimeUnit timeoutUnit) {
+        super(result, key, delta, initial, expiration, cas, timeout, timeoutUnit);
     }
 
     @Override

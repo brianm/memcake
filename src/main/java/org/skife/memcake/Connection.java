@@ -366,25 +366,34 @@ public class Connection implements AutoCloseable {
                                             defaultTimeoutUnit), r);
     }
 
-
     public CompletableFuture<Void> incrementq(byte[] key, long delta, long initial, int expiration) {
+        return incrementq(key, delta, initial, expiration, Version.ZERO);
+    }
+
+    public CompletableFuture<Void> incrementq(byte[] key, long delta, long initial, int expiration, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
         return enqueue(new IncrementQuietlyCommand(r,
                                                    key,
                                                    delta,
                                                    initial,
                                                    expiration,
+                                                   cas,
                                                    defaultTimeout,
                                                    defaultTimeoutUnit), r);
     }
 
     public CompletableFuture<Void> decrementq(byte[] key, long delta, long initial, int expiration) {
+        return decrementq(key, delta, initial, expiration, Version.ZERO);
+    }
+
+    public CompletableFuture<Void> decrementq(byte[] key, long delta, long initial, int expiration, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
         return enqueue(new DecrementQuietlyCommand(r,
                                                    key,
                                                    delta,
                                                    initial,
                                                    expiration,
+                                                   cas,
                                                    defaultTimeout,
                                                    defaultTimeoutUnit), r);
     }
