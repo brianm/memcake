@@ -213,6 +213,22 @@ public class ConnectionTest {
     }
 
     @Property
+    public void deleteQuietlyWithCasSuccess(Entry e) throws Exception {
+        Version v = c.set(e.key(), 0, 0, e.value()).get();
+        c.deleteq(e.key(), v);
+        assertThat(c.get(e.key()).get()).isEmpty();
+    }
+
+    @Property
+    public void deleteQuietlyWithCasFailure(Entry one, @From(ByteArrayGen.class) byte[] val2) throws Exception {
+        Version v = c.set(one.key(), 0, 0, one.value()).get();
+        c.replace(one.key(), 0, 0, val2);
+        CompletableFuture<Void> dq = c.deleteq(one.key(), v);
+        c.noop().get();
+        assertThatThrownBy(dq::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Property
     public void increment(Entry entry,
                           @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long delta,
                           @InRange(minLong = 1, maxLong = Integer.MAX_VALUE) long initial) throws Exception {
