@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Connection implements AutoCloseable {
 
     // TODO put a limit on how deep this can grow!
-    private final BlockingDeque<Command> queuedRequests = new LinkedBlockingDeque<>();
+    private final BlockingDeque<Pair<Long, Command>> queuedRequests = new LinkedBlockingDeque<>();
 
     // made visible-ish for white box testing purposes only
     final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
@@ -102,12 +102,12 @@ public class Connection implements AutoCloseable {
         if (writing.compareAndSet(false, true)) {
             // write next outbound command
             // we rely on writeFinished() being called to unset this flag
-            final Command c = queuedRequests.poll();
-            if (c == null) {
+            final Pair<Long, Command> cp = queuedRequests.poll();
+            if (cp == null) {
                 writing.set(false);
                 return;
             }
-
+            Command c = cp.right();
             int opaque = opaques.getAndIncrement();
             Responder responder = c.createResponder(opaque);
             waiting.put(opaque, responder);
@@ -123,11 +123,12 @@ public class Connection implements AutoCloseable {
             }
 
             c.write(this, opaque);
+            long queueTime = c.getTimeoutUnit().convert(System.nanoTime() - cp.left(), TimeUnit.NANOSECONDS);
             timeoutExecutor.schedule(() -> {
                 Responder r = waiting.remove(opaque);
                 scoreboard.remove(opaque); // possible race between response coming in and timeout hitting
-                r.failure(new TimeoutException());
-            }, c.getTimeout(), c.getTimeoutUnit());
+                r.failure(new TimeoutException("timed out after " + c.getTimeout() + " " + c.getTimeoutUnit()));
+            }, c.getTimeout() - queueTime, c.getTimeoutUnit());
         }
     }
 
@@ -242,7 +243,7 @@ public class Connection implements AutoCloseable {
 
     private <T> CompletableFuture<T> enqueue(Command command, CompletableFuture<T> result) {
         checkState();
-        queuedRequests.add(command);
+        queuedRequests.add(Pair.of(System.nanoTime(), command));
         maybeWrite();
         return result;
     }
@@ -312,14 +313,8 @@ public class Connection implements AutoCloseable {
 
     public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value, Version cas) {
         CompletableFuture<Void> r = new CompletableFuture<>();
-        return enqueue(new ReplaceQuietCommand(r,
-                                               key,
-                                               flags,
-                                               expires,
-                                               value,
-                                               cas,
-                                               defaultTimeout,
-                                               defaultTimeoutUnit), r);
+        return enqueue(new ReplaceQuietCommand(r, key, flags, expires, value, cas, defaultTimeout, defaultTimeoutUnit),
+                       r);
     }
 
     public CompletableFuture<Void> flush(int expires) {
