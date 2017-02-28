@@ -3,6 +3,7 @@ package org.skife.memcake;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
@@ -58,15 +59,15 @@ public class Connection implements AutoCloseable {
     private final AtomicBoolean open = new AtomicBoolean(true);
     private final AtomicBoolean writing = new AtomicBoolean(false);
 
-    private final AsynchronousSocketChannel channel;
+    private final AsynchronousByteChannel channel;
     private final ScheduledExecutorService timeoutExecutor;
     private final long defaultTimeout;
     private final TimeUnit defaultTimeoutUnit;
 
-    private Connection(AsynchronousSocketChannel channel,
-                       ScheduledExecutorService timeoutExecutor,
-                       long defaultTimeout,
-                       TimeUnit defaultTimeoutUnit) {
+    Connection(AsynchronousByteChannel channel,
+               ScheduledExecutorService timeoutExecutor,
+               long defaultTimeout,
+               TimeUnit defaultTimeoutUnit) {
         this.channel = channel;
         this.timeoutExecutor = timeoutExecutor;
         this.defaultTimeout = defaultTimeout;
@@ -96,7 +97,9 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * The main write "loop" used to ensure only one write is happening at a time.
+     * The main write loop used to ensure only one write is happening at a time.
+     *
+     * Mutually recursive with finishWrite via {@link Command#write(Connection, Integer)}
      */
     private void maybeWrite() {
         if (writing.compareAndSet(false, true)) {
@@ -203,7 +206,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    AsynchronousSocketChannel getChannel() {
+    AsynchronousByteChannel getChannel() {
         return channel;
     }
 

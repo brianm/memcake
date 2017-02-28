@@ -22,7 +22,7 @@ abstract class Command {
     long cas() { return 0;}
     void writeBody(ByteBuffer buffer) {}
 
-    void write(Connection conn, Integer opaque) {
+    final void write(Connection conn, Integer opaque) {
         byte extraLength = extraLength();
         char keyLength = keyLength();
         int bodyLength = bodyLength();
