@@ -1,14 +1,13 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class FlushQuietlyCommand extends FlushCommand {
     FlushQuietlyCommand(CompletableFuture<Void> result,
                                int expires,
-                               long timeout,
-                               TimeUnit timeoutUnit) {
-        super(result, expires, timeout, timeoutUnit);
+                        Duration timeout) {
+        super(result, expires, timeout);
     }
 
     @Override

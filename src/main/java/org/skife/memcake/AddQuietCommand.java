@@ -1,7 +1,7 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class AddQuietCommand extends SetQuietCommand {
 
@@ -10,8 +10,8 @@ class AddQuietCommand extends SetQuietCommand {
                     int flags,
                     int expires,
                     byte[] value,
-                    long timeout, TimeUnit timeoutUnit) {
-        super(result, key, flags, expires, value, Version.ZERO, timeout, timeoutUnit);
+                    Duration timeout) {
+        super(result, key, flags, expires, value, Version.ZERO, timeout);
     }
 
     @Override

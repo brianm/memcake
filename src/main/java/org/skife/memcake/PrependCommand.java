@@ -1,16 +1,15 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class PrependCommand extends AppendCommand {
     PrependCommand(CompletableFuture<Version> result,
                    byte[] key,
                    byte[] value,
                    Version cas,
-                   long timeout,
-                   TimeUnit unit) {
-        super(result, key, value, cas, timeout, unit);
+                   Duration timeout) {
+        super(result, key, value, cas, timeout);
     }
 
     @Override

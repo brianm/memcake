@@ -2,16 +2,14 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 abstract class Command {
 
-    private final long timeout;
-    private final TimeUnit unit;
+    private final Duration timeout;
 
-    Command(long timeout, TimeUnit unit) {
+    Command(Duration timeout) {
         this.timeout = timeout;
-        this.unit = unit;
     }
 
     abstract Responder createResponder(int opaque);
@@ -62,12 +60,8 @@ abstract class Command {
         });
     }
 
-    long getTimeout() {
+    Duration getTimeout() {
         return timeout;
-    }
-
-    TimeUnit getTimeoutUnit() {
-        return unit;
     }
 
     boolean isQuiet() {

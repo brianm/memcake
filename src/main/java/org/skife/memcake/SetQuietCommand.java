@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class SetQuietCommand extends Command {
     private final CompletableFuture<Void> r;
@@ -18,9 +18,8 @@ class SetQuietCommand extends Command {
                     int expires,
                     byte[] value,
                     Version cas,
-                    long defaultTimeout,
-                    TimeUnit defaultTimeoutUnit) {
-        super(defaultTimeout, defaultTimeoutUnit);
+                    Duration timeout) {
+        super(timeout);
         this.r = r;
         this.key = key;
         this.flags = flags;

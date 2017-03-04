@@ -1,7 +1,7 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class ReplaceQuietCommand extends SetQuietCommand {
     ReplaceQuietCommand(CompletableFuture<Void> result,
@@ -9,8 +9,9 @@ class ReplaceQuietCommand extends SetQuietCommand {
                         int flags,
                         int expires,
                         byte[] value,
-                        Version cas, long timeout, TimeUnit timeoutUnit) {
-        super(result, key, flags, expires, value, cas, timeout, timeoutUnit);
+                        Version cas,
+                        Duration timeout) {
+        super(result, key, flags, expires, value, cas, timeout);
     }
 
     @Override

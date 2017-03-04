@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +42,8 @@ public class ConnectionTest {
     public void setUp() throws Exception {
         c = Connection.open(mc.getAddress(),
                             AsynchronousSocketChannel.open(),
-                            cron, 1, TimeUnit.HOURS).get();
+                            cron,
+                            Duration.ofHours(1)).get();
 
         // yes yes, we use the thing under test to clean up after itself. It works though.
         c.flush(0).get();

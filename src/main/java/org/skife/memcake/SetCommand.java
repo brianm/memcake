@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class SetCommand extends Command {
     private final CompletableFuture<Version> result;
@@ -18,9 +18,8 @@ class SetCommand extends Command {
                int expires,
                byte[] value,
                Version casToken,
-               long timeout,
-               TimeUnit unit) {
-        super(timeout, unit);
+               Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
         this.flags = flags;

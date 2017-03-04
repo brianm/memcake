@@ -1,16 +1,15 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class PrependQuietlyCommand extends AppendQuietlyCommand {
     PrependQuietlyCommand(CompletableFuture<Void> result,
                           byte[] key,
                           byte[] value,
                           Version cas,
-                          long timeout,
-                          TimeUnit timeoutUnit) {
-        super(result, key, value, cas, timeout, timeoutUnit);
+                          Duration timeout) {
+        super(result, key, value, cas, timeout);
     }
 
     @Override

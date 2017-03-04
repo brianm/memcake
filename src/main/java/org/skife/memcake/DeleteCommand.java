@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class DeleteCommand extends Command {
 
@@ -13,9 +13,8 @@ class DeleteCommand extends Command {
     DeleteCommand(CompletableFuture<Void> result,
                   byte[] key,
                   Version cas,
-                  long timeout,
-                  TimeUnit unit) {
-        super(timeout, unit);
+                  Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
         this.cas = cas;

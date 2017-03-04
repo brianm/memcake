@@ -1,8 +1,7 @@
 package org.skife.memcake;
 
-import java.util.Optional;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class ReplaceCommand extends SetCommand {
 
@@ -12,9 +11,8 @@ class ReplaceCommand extends SetCommand {
                    int expires,
                    byte[] value,
                    Version casToken,
-                   long timeout,
-                   TimeUnit unit) {
-        super(result, key, flags, expires, value, casToken, timeout, unit);
+                   Duration timeout) {
+        super(result, key, flags, expires, value, casToken, timeout);
     }
 
     @Override

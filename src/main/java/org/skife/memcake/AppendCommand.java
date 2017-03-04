@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class AppendCommand extends Command {
 
@@ -15,9 +15,8 @@ class AppendCommand extends Command {
                   byte[] key,
                   byte[] value,
                   Version cas,
-                  long timeout,
-                  TimeUnit unit) {
-        super(timeout, unit);
+                  Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
         this.value = value;

@@ -1,7 +1,7 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class DecrementCommand extends IncrementCommand {
 
@@ -11,8 +11,8 @@ class DecrementCommand extends IncrementCommand {
                      long initial,
                      int expiration,
                      Version cas,
-                     long timeout, TimeUnit unit) {
-        super(result, key, delta, initial, expiration, cas, timeout, unit);
+                     Duration timeout) {
+        super(result, key, delta, initial, expiration, cas, timeout);
     }
 
     @Override

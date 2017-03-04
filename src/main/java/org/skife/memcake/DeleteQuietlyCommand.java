@@ -1,15 +1,14 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class DeleteQuietlyCommand extends DeleteCommand {
     DeleteQuietlyCommand(CompletableFuture<Void> result,
                          byte[] key,
                          Version version,
-                         long timeout,
-                         TimeUnit unit) {
-        super(result, key, version, timeout, unit);
+                         Duration timeout) {
+        super(result, key, version, timeout);
     }
 
     @Override

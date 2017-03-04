@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class DecrementQuietlyCommand extends IncrementQuietlyCommand {
     DecrementQuietlyCommand(CompletableFuture<Void> result,
@@ -11,8 +11,8 @@ class DecrementQuietlyCommand extends IncrementQuietlyCommand {
                             long initial,
                             int expiration,
                             Version cas,
-                            long timeout, TimeUnit timeoutUnit) {
-        super(result, key, delta, initial, expiration, cas, timeout, timeoutUnit);
+                            Duration timeout) {
+        super(result, key, delta, initial, expiration, cas, timeout);
     }
 
     @Override

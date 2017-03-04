@@ -1,15 +1,15 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class GetKQuietCommand extends GetCommand {
     GetKQuietCommand(CompletableFuture<Optional<Value>> result,
                      byte[] key,
-                     long timeout,
-                     TimeUnit unit) {
-        super(result, key, timeout, unit);
+                     Duration timeout
+    ) {
+        super(result, key, timeout);
     }
 
     @Override

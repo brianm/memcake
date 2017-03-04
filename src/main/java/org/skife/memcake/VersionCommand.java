@@ -2,15 +2,15 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class VersionCommand extends Command {
 
     private final CompletableFuture<String> result;
 
-    VersionCommand(CompletableFuture<String> result, long timeout, TimeUnit unit) {
-        super(timeout, unit);
+    VersionCommand(CompletableFuture<String> result, Duration timeout) {
+        super(timeout);
         this.result = result;
     }
 

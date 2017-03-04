@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class IncrementCommand extends Command {
 
@@ -19,9 +19,8 @@ class IncrementCommand extends Command {
                      long initial,
                      int expiration,
                      Version cas,
-                     long timeout,
-                     TimeUnit unit) {
-        super(timeout, unit);
+                     Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
         this.delta = delta;

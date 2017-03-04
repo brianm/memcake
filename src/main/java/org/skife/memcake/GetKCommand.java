@@ -1,15 +1,14 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class GetKCommand extends GetCommand {
     GetKCommand(CompletableFuture<Optional<Value>> result,
                 byte[] key,
-                long timeout,
-                TimeUnit unit) {
-        super(result, key, timeout, unit);
+                Duration timeout) {
+        super(result, key, timeout);
     }
 
     @Override

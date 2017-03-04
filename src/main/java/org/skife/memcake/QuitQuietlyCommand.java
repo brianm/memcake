@@ -1,14 +1,14 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class QuitQuietlyCommand extends Command {
 
     private final CompletableFuture<Void> result;
 
-    QuitQuietlyCommand(CompletableFuture<Void> result, long timeout, TimeUnit unit) {
-        super(timeout, unit);
+    QuitQuietlyCommand(CompletableFuture<Void> result, Duration timeout) {
+        super(timeout);
         this.result = result;
     }
 

@@ -1,6 +1,5 @@
 package org.skife.memcake;
 
-import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class Value {

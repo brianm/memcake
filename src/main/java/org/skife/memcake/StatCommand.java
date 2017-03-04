@@ -2,19 +2,19 @@ package org.skife.memcake;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 class StatCommand extends Command {
 
     private final CompletableFuture<Map<String, String>> result;
     private final Optional<String> key;
 
-    StatCommand(CompletableFuture<Map<String, String>> result, Optional<String> key, long timeout, TimeUnit unit) {
-        super(timeout, unit);
+    StatCommand(CompletableFuture<Map<String, String>> result, Optional<String> key, Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
     }

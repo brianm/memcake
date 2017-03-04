@@ -1,15 +1,15 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class QuitCommand extends Command {
 
     private final CompletableFuture<Void> result;
     private final Connection conn;
 
-    QuitCommand(CompletableFuture<Void> result, Connection conn, long timeout, TimeUnit unit) {
-        super(timeout, unit);
+    QuitCommand(CompletableFuture<Void> result, Connection conn, Duration timeout) {
+        super(timeout);
         this.result = result;
         this.conn = conn;
     }

@@ -1,7 +1,7 @@
 package org.skife.memcake;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class AddCommand extends SetCommand {
     AddCommand(CompletableFuture<Version> result,
@@ -9,9 +9,8 @@ class AddCommand extends SetCommand {
                int flags,
                int expires,
                byte[] value,
-               long timeout,
-               TimeUnit unit) {
-        super(result, key, flags, expires, value, Version.ZERO, timeout, unit);
+               Duration timeout) {
+        super(result, key, flags, expires, value, Version.ZERO, timeout);
     }
 
     @Override

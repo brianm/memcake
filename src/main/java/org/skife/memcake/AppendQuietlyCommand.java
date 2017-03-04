@@ -1,8 +1,8 @@
 package org.skife.memcake;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 class AppendQuietlyCommand extends Command {
     private final CompletableFuture<Void> result;
@@ -14,9 +14,8 @@ class AppendQuietlyCommand extends Command {
                          byte[] key,
                          byte[] value,
                          Version cas,
-                         long timeout,
-                         TimeUnit timeoutUnit) {
-        super(timeout, timeoutUnit);
+                         Duration timeout) {
+        super(timeout);
         this.result = result;
         this.key = key;
         this.value = value;
