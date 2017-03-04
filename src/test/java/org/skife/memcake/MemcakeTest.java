@@ -30,11 +30,10 @@ public class MemcakeTest {
     public void setUp() throws Exception {
         c = Connection.open(memcached.getAddress(),
                             AsynchronousSocketChannel.open(),
-                            cron,
-                            Duration.ofHours(1)).get();
+                            cron).get();
 
         // yes yes, we use the thing under test to clean up after itself. It works though.
-        c.flush(0).get();
+        c.flush(0, Duration.ofDays(1)).get();
     }
 
     @After
@@ -53,7 +52,7 @@ public class MemcakeTest {
                                           .execute();
         Version ver = fs.get();
 
-        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8)).get();
+        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8), Duration.ofDays(1)).get();
         assertThat(val).isPresent();
         val.ifPresent((v) -> {
             assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
@@ -87,7 +86,7 @@ public class MemcakeTest {
     }
 
     @Test
-    public void testGetWithMap() throws Exception {
+    public void testGetWithMappedResult() throws Exception {
         Memcake mc = Memcake.create(memcached.getAddress());
 
         mc.set("hello", "world").execute().get();

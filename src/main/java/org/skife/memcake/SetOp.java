@@ -3,7 +3,6 @@ package org.skife.memcake;
 import org.skife.memcake.connection.Version;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class SetOp {
@@ -11,16 +10,16 @@ public class SetOp {
 
     private final byte[] key;
     private final byte[] value;
-
     private int expires = 0;
     private int flags = 0;
     private Version version = Version.NONE;
-    private Optional<Duration> timeout = Optional.empty();
+    private Duration timeout;
 
-    SetOp(Memcake memcake, byte[] key, byte[] value) {
+    SetOp(Memcake memcake, byte[] key, byte[] value, Duration timeout) {
         this.memcake = memcake;
         this.key = key;
         this.value = value;
+        this.timeout = timeout;
     }
 
     public SetOp expires(int expires) {
@@ -34,7 +33,7 @@ public class SetOp {
     }
 
     public SetOp timeout(Duration timeout) {
-        this.timeout = Optional.of(timeout);
+        this.timeout = timeout;
         return this;
     }
 
@@ -44,8 +43,6 @@ public class SetOp {
     }
 
     public CompletableFuture<Version> execute() {
-        return memcake.perform(key, (c) -> {
-            return c.set(key, flags, expires, value, version, timeout.orElse(c.getDefaultTimeout()));
-        });
+        return memcake.perform(key, (c) -> c.set(key, flags, expires, value, version, timeout));
     }
 }

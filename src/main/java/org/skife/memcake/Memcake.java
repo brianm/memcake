@@ -23,10 +23,13 @@ public class Memcake implements AutoCloseable {
 
     private final Function<InetSocketAddress, CompletableFuture<Connection>> connector;
     private final InetSocketAddress addr;
+    private final Duration defaultTimeout;
 
-    private Memcake(Function<InetSocketAddress, CompletableFuture<Connection>> connector, InetSocketAddress addr) {
+    private Memcake(Function<InetSocketAddress, CompletableFuture<Connection>> connector,
+                    InetSocketAddress addr, Duration defaultTimeout) {
         this.connector = connector;
         this.addr = addr;
+        this.defaultTimeout = defaultTimeout;
         conn.set(connector.apply(addr));
     }
 
@@ -44,11 +47,11 @@ public class Memcake implements AutoCloseable {
         }
         return new Memcake((a) -> {
             try {
-                return Connection.open(a, AsynchronousSocketChannel.open(), cron, Duration.ofMillis(1000));
+                return Connection.open(a, AsynchronousSocketChannel.open(), cron);
             } catch (IOException e) {
                 throw new IllegalStateException("unable to connect", e);
             }
-        }, address[0]);
+        }, address[0], Duration.ofSeconds(1));
     }
 
     <T> CompletableFuture<T> perform(byte[] key, Function<Connection, CompletableFuture<T>> f) {
@@ -58,7 +61,7 @@ public class Memcake implements AutoCloseable {
     // public API
 
     public SetOp set(byte[] key, byte[] value) {
-        return new SetOp(this, key, value);
+        return new SetOp(this, key, value, defaultTimeout);
     }
 
     public SetOp set(String key, String value) {
@@ -74,6 +77,6 @@ public class Memcake implements AutoCloseable {
     }
 
     public GetOp get(byte[] key) {
-        return new GetOp(this, key);
+        return new GetOp(this, key, defaultTimeout);
     }
 }

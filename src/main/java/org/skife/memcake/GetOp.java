@@ -9,23 +9,21 @@ import java.util.concurrent.CompletableFuture;
 public class GetOp {
     private final Memcake memcake;
     private final byte[] key;
+    private Duration timeout;
 
-    private Optional<Duration> timeout = Optional.empty();
-
-    GetOp(Memcake memcake, byte[] key) {
+    GetOp(Memcake memcake, byte[] key, Duration timeout) {
         this.memcake = memcake;
         this.key = key;
+        this.timeout = timeout;
     }
 
     public GetOp timeout(Duration timeout) {
-        this.timeout = Optional.of(timeout);
+        this.timeout = timeout;
         return this;
     }
 
 
     public CompletableFuture<Optional<Value>> execute() {
-        return memcake.perform(key, (c) -> {
-            return c.get(key, timeout.orElse(c.getDefaultTimeout()));
-        });
+        return memcake.perform(key, (c) -> c.get(key, timeout));
     }
 }
