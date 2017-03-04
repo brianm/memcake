@@ -42,29 +42,8 @@ public class MemcakeTest {
         c.close();
     }
 
-
     @Test
-    public void testApiDesignBytes() throws Exception {
-        Memcake mc = Memcake.create(memcached.getAddress());
-        CompletableFuture<Version> fs = mc.set(new byte[]{1, 2, 3}, new byte[]{3, 2, 1})
-                                          .expires(0)
-                                          .flags(1)
-                                          .timeout(Duration.ofHours(1))
-                                          .version(Version.NONE)
-                                          .execute();
-        Version ver = fs.get();
-
-        Optional<Value> val = c.get(new byte[]{1, 2, 3}).get();
-        assertThat(val).isPresent();
-        val.ifPresent((v) -> {
-            assertThat(v.getValue()).isEqualTo(new byte[]{3, 2, 1});
-            assertThat(v.getFlags()).isEqualTo(1);
-            assertThat(v.getVersion()).isEqualTo(ver);
-        });
-    }
-
-    @Test
-    public void testApiDesignStrings() throws Exception {
+    public void testSetWithStrings() throws Exception {
         Memcake mc = Memcake.create(memcached.getAddress());
         CompletableFuture<Version> fs = mc.set("hello", "world")
                                           .expires(0)
@@ -84,9 +63,10 @@ public class MemcakeTest {
     }
 
     @Test
-    public void testApiDesignStringByte() throws Exception {
+    public void testGetWithStrings() throws Exception {
         Memcake mc = Memcake.create(memcached.getAddress());
-        CompletableFuture<Version> fs = mc.set("hello", new byte[]{1, 2, 3})
+
+        CompletableFuture<Version> fs = mc.set("hello", "world")
                                           .expires(0)
                                           .flags(1)
                                           .timeout(Duration.ofHours(1))
@@ -94,12 +74,30 @@ public class MemcakeTest {
                                           .execute();
         Version ver = fs.get();
 
-        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8)).get();
-        assertThat(val).isPresent();
-        val.ifPresent((v) -> {
-            assertThat(v.getValue()).isEqualTo(new byte[]{1, 2, 3});
-            assertThat(v.getFlags()).isEqualTo(1);
+        CompletableFuture<Optional<Value>> rs = mc.get("hello".getBytes(StandardCharsets.UTF_8))
+                                                  .timeout(Duration.ofHours(1))
+                                                  .execute();
+        Optional<Value> ov = rs.get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
             assertThat(v.getVersion()).isEqualTo(ver);
+            assertThat(v.getFlags()).isEqualTo(1);
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
         });
+    }
+
+    @Test
+    public void testGetWithMap() throws Exception {
+        Memcake mc = Memcake.create(memcached.getAddress());
+
+        mc.set("hello", "world").execute().get();
+
+        CompletableFuture<Optional<String>> rs = mc.get("hello")
+                                                   .execute()
+                                                   .thenApply(ov -> ov.map(v -> new String(v.getValue(),
+                                                                                           StandardCharsets.UTF_8)));
+
+        Optional<String> ov = rs.get();
+        assertThat(ov).contains("world");
     }
 }

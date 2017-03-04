@@ -68,4 +68,12 @@ public class Memcake implements AutoCloseable {
     public SetOp set(String key, byte[] value) {
         return set(key.getBytes(StandardCharsets.UTF_8), value);
     }
+
+    public GetOp get(String key) {
+        return get(key.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public GetOp get(byte[] key) {
+        return new GetOp(this, key);
+    }
 }
