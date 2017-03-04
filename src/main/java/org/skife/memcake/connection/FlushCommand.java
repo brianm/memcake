@@ -27,7 +27,7 @@ class FlushCommand extends Command {
 
     @Override
     void writeBody(ByteBuffer buffer) {
-        if (expires >0) {
+        if (expires > 0) {
             buffer.putInt(expires);
         }
     }

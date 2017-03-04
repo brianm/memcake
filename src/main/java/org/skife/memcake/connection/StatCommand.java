@@ -25,7 +25,7 @@ class StatCommand extends Command {
         return new Responder(opaque, result::completeExceptionally, (s) -> {
             Response r = s.get(opaque);
             byte[] key = r.getKey();
-            if (key != null &&  key.length != 0) {
+            if (key != null && key.length != 0) {
                 // accumulate the value
                 rs.put(new String(key, StandardCharsets.US_ASCII), new String(r.getValue(), StandardCharsets.US_ASCII));
             }

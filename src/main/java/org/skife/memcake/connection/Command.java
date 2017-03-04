@@ -14,11 +14,24 @@ abstract class Command {
 
     abstract Responder createResponder(int opaque);
 
-    byte extraLength() { return 0;}
-    char keyLength() { return 0;}
-    int bodyLength() { return 0;}
-    long cas() { return 0;}
-    void writeBody(ByteBuffer buffer) {}
+    byte extraLength() {
+        return 0;
+    }
+
+    char keyLength() {
+        return 0;
+    }
+
+    int bodyLength() {
+        return 0;
+    }
+
+    long cas() {
+        return 0;
+    }
+
+    void writeBody(ByteBuffer buffer) {
+    }
 
     final void write(Connection conn, Integer opaque) {
         byte extraLength = extraLength();
@@ -26,7 +39,7 @@ abstract class Command {
         int bodyLength = bodyLength();
 
         ByteBuffer buffer = ByteBuffer.allocate(24 + extraLength + keyLength + bodyLength);
-        buffer.put((byte)0x80); // client magic number
+        buffer.put((byte) 0x80); // client magic number
         buffer.put(opcode());
         buffer.putChar(keyLength);
         buffer.put(extraLength); // extra length

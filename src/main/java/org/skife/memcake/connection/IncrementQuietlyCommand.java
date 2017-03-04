@@ -27,6 +27,7 @@ class IncrementQuietlyCommand extends Command {
         this.expiration = expiration;
         this.cas = cas;
     }
+
     @Override
     Responder createResponder(int opaque) {
         return Responder.voidResponder(this, result, opaque);

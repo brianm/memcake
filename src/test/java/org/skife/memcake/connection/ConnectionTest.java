@@ -14,11 +14,6 @@ import org.junit.runner.RunWith;
 import org.skife.memcake.ByteArrayGen;
 import org.skife.memcake.Entry;
 import org.skife.memcake.MemcachedRule;
-import org.skife.memcake.connection.Connection;
-import org.skife.memcake.connection.Counter;
-import org.skife.memcake.connection.StatusException;
-import org.skife.memcake.connection.Value;
-import org.skife.memcake.connection.Version;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
