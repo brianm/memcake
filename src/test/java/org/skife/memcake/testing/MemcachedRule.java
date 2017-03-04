@@ -1,4 +1,4 @@
-package org.skife.memcake;
+package org.skife.memcake.testing;
 
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;

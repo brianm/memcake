@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.skife.memcake.connection.Connection;
 import org.skife.memcake.connection.Value;
 import org.skife.memcake.connection.Version;
+import org.skife.memcake.testing.MemcachedRule;
 
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;

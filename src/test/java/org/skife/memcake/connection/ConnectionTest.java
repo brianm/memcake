@@ -11,9 +11,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.skife.memcake.ByteArrayGen;
-import org.skife.memcake.Entry;
-import org.skife.memcake.MemcachedRule;
+import org.skife.memcake.testing.ByteArrayGen;
+import org.skife.memcake.testing.MemcachedRule;
+import org.skife.memcake.testing.Entry;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;

@@ -1,10 +1,12 @@
-package org.skife.memcake;
+package org.skife.memcake.testing;
 
+import com.google.auto.service.AutoService;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.Size;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
+@AutoService(Generator.class)
 public class ByteArrayGen extends Generator<byte[]> {
     private int min = 1;
     private int max = Character.MAX_VALUE;

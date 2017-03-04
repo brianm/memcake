@@ -1,4 +1,4 @@
-package org.skife.memcake;
+package org.skife.memcake.testing;
 
 public class Entry {
     private final byte[] key;

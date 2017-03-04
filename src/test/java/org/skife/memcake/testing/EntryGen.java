@@ -1,9 +1,11 @@
-package org.skife.memcake;
+package org.skife.memcake.testing;
 
+import com.google.auto.service.AutoService;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 
+@AutoService(Generator.class)
 public class EntryGen extends Generator<Entry> {
 
     public EntryGen() {
