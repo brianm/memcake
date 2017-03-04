@@ -30,7 +30,17 @@ public class Memcake implements AutoCloseable {
         this.connector = connector;
         this.addr = addr;
         this.defaultTimeout = defaultTimeout;
-        conn.set(connector.apply(addr));
+        connect();
+    }
+
+    private void connect() {
+        conn.set(connector.apply(addr).whenComplete((c, e) -> {
+            if (e != null) {
+                connect();
+                return;
+            }
+            c.addNetworkFailureListener(this::connect);
+        }));
     }
 
     @Override
@@ -54,7 +64,7 @@ public class Memcake implements AutoCloseable {
         }, address[0], Duration.ofSeconds(1));
     }
 
-    <T> CompletableFuture<T> perform(byte[] key, Function<Connection, CompletableFuture<T>> f) {
+    public <T> CompletableFuture<T> call(byte[] key, Function<Connection, CompletableFuture<T>> f) {
         return conn.get().thenCompose(f);
     }
 
@@ -79,4 +89,5 @@ public class Memcake implements AutoCloseable {
     public GetOp get(byte[] key) {
         return new GetOp(this, key, defaultTimeout);
     }
+
 }

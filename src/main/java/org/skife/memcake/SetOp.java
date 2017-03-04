@@ -43,6 +43,6 @@ public class SetOp {
     }
 
     public CompletableFuture<Version> execute() {
-        return memcake.perform(key, (c) -> c.set(key, flags, expires, value, version, timeout));
+        return memcake.call(key, (c) -> c.set(key, flags, expires, value, version, timeout));
     }
 }

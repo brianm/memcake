@@ -17,6 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -58,7 +59,9 @@ public class Connection implements AutoCloseable {
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
 
     private final AtomicBoolean open = new AtomicBoolean(true);
+    private final AtomicBoolean failed = new AtomicBoolean(false);
     private final AtomicBoolean writing = new AtomicBoolean(false);
+    private final List<Runnable> networkFailureListeners = new CopyOnWriteArrayList<>();
 
     private final AsynchronousByteChannel channel;
     private final ScheduledExecutorService timeoutExecutor;
@@ -172,9 +175,14 @@ public class Connection implements AutoCloseable {
      * Invoked if any networking operations hit an error.
      */
     void networkFailure(Throwable exc) {
-        close();
-        waiting.forEach((_opaque, responder) -> responder.failure(exc));
-        waiting.clear();
+        if (failed.compareAndSet(false, true)) {
+            close();
+            waiting.forEach((_opaque, responder) -> responder.failure(exc));
+            waiting.clear();
+            for (Runnable listener : networkFailureListeners) {
+                listener.run();
+            }
+        }
     }
 
     public boolean isOpen() {
@@ -249,6 +257,7 @@ public class Connection implements AutoCloseable {
 
     /* the main api of this thing, as used by users */
 
+    //
     public CompletableFuture<Optional<Value>> get(byte[] key, Duration timeout) {
         CompletableFuture<Optional<Value>> r = new CompletableFuture<>();
         return enqueue(new GetCommand(r, key, timeout), r);
@@ -279,6 +288,7 @@ public class Connection implements AutoCloseable {
         return enqueue(new SetQuietCommand(r, key, flags, expires, value, cas, timeout), r);
     }
 
+    //
     public CompletableFuture<Version> set(byte[] key,
                                           int flags,
                                           int expires,
@@ -428,5 +438,9 @@ public class Connection implements AutoCloseable {
     public CompletableFuture<Void> quitq(Duration timeout) {
         CompletableFuture<Void> r = new CompletableFuture<>();
         return enqueue(new QuitQuietlyCommand(r, timeout), r);
+    }
+
+    public void addNetworkFailureListener(Runnable callback) {
+        networkFailureListeners.add(callback);
     }
 }

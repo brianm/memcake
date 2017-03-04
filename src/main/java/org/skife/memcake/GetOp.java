@@ -24,6 +24,6 @@ public class GetOp {
 
 
     public CompletableFuture<Optional<Value>> execute() {
-        return memcake.perform(key, (c) -> c.get(key, timeout));
+        return memcake.call(key, (c) -> c.get(key, timeout));
     }
 }

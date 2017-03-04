@@ -185,7 +185,6 @@ public class ConnectionTest {
 
         assertThat(results).containsOnlyKeys(1, 3, 5);
         assertThat(c.scoreboard).isEmpty();
-        assertThat(c.waiting).isEmpty();
         assertThat(c.queuedQuiets).isEmpty();
         assertThat(c.quietProxies).isEmpty();
     }
