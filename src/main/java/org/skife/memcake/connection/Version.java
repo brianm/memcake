@@ -1,7 +1,7 @@
 package org.skife.memcake.connection;
 
 public class Version implements Comparable<Version> {
-    static final Version ZERO = new Version(0);
+    public static final Version NONE = new Version(0);
     private final long version;
 
     Version(long version) {

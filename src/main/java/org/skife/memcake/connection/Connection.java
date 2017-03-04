@@ -251,6 +251,10 @@ public class Connection implements AutoCloseable {
         return result;
     }
 
+    public Duration getDefaultTimeout() {
+        return defaultTimeout;
+    }
+
     /* the main api of this thing, as used by users */
 
     public CompletableFuture<Optional<Value>> get(byte[] key) {
@@ -294,7 +298,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Version> set(byte[] key, int flags, int expires, byte[] value, Duration timeout) {
-        return set(key, flags, expires, value, Version.ZERO, timeout);
+        return set(key, flags, expires, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value) {
@@ -302,7 +306,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value, Duration timeout) {
-        return setq(key, flags, expires, value, Version.ZERO, timeout);
+        return setq(key, flags, expires, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> setq(byte[] key, int flags, int expires, byte[] value, Version cas) {
@@ -356,7 +360,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Duration timeout) {
-        return replace(key, flags, expires, value, Version.ZERO, timeout);
+        return replace(key, flags, expires, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value) {
@@ -364,7 +368,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> replaceq(byte[] key, int flags, int expires, byte[] value, Duration timeout) {
-        return replaceq(key, flags, expires, value, Version.ZERO, timeout);
+        return replaceq(key, flags, expires, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Version> replace(byte[] key, int flags, int expires, byte[] value, Version cas) {
@@ -427,7 +431,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> delete(byte[] key, Duration timeout) {
-        return delete(key, Version.ZERO, timeout);
+        return delete(key, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> deleteq(byte[] key, Version cas) {
@@ -444,7 +448,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> deleteq(byte[] key, Duration timeout) {
-        return delete(key, Version.ZERO, timeout);
+        return delete(key, Version.NONE, timeout);
     }
 
     public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration) {
@@ -456,7 +460,7 @@ public class Connection implements AutoCloseable {
                                                 long initial,
                                                 int expiration,
                                                 Duration timeout) {
-        return increment(key, delta, initial, expiration, Version.ZERO, timeout);
+        return increment(key, delta, initial, expiration, Version.NONE, timeout);
     }
 
     public CompletableFuture<Counter> increment(byte[] key, long delta, long initial, int expiration, Version cas) {
@@ -478,7 +482,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> incrementq(byte[] key, long delta, long initial, int expiration, Duration timeout) {
-        return incrementq(key, delta, initial, expiration, Version.ZERO, timeout);
+        return incrementq(key, delta, initial, expiration, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> incrementq(byte[] key, long delta, long initial, int expiration, Version cas) {
@@ -500,7 +504,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> decrementq(byte[] key, long delta, long initial, int expiration, Duration timeout) {
-        return decrementq(key, delta, initial, expiration, Version.ZERO, timeout);
+        return decrementq(key, delta, initial, expiration, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> decrementq(byte[] key, long delta, long initial, int expiration, Version cas) {
@@ -526,7 +530,7 @@ public class Connection implements AutoCloseable {
                                                 long initial,
                                                 int expiration,
                                                 Duration timeout) {
-        return decrement(key, delta, initial, expiration, Version.ZERO, timeout);
+        return decrement(key, delta, initial, expiration, Version.NONE, timeout);
     }
 
 
@@ -585,7 +589,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Version> append(byte[] key, byte[] value, Duration timeout) {
-        return append(key, value, Version.ZERO, timeout);
+        return append(key, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> appendq(byte[] key, byte[] value) {
@@ -593,7 +597,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> appendq(byte[] key, byte[] value, Duration timeout) {
-        return appendq(key, value, Version.ZERO, timeout);
+        return appendq(key, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> appendq(byte[] key, byte[] value, Version cas) {
@@ -619,7 +623,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Version> prepend(byte[] key, byte[] value, Duration timeout) {
-        return prepend(key, value, Version.ZERO, timeout);
+        return prepend(key, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> prependq(byte[] key, byte[] value) {
@@ -627,7 +631,7 @@ public class Connection implements AutoCloseable {
     }
 
     public CompletableFuture<Void> prependq(byte[] key, byte[] value, Duration timeout) {
-        return prependq(key, value, Version.ZERO, timeout);
+        return prependq(key, value, Version.NONE, timeout);
     }
 
     public CompletableFuture<Void> prependq(byte[] key, byte[] value, Version cas) {

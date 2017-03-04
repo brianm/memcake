@@ -11,7 +11,7 @@ class AddQuietCommand extends SetQuietCommand {
                     int expires,
                     byte[] value,
                     Duration timeout) {
-        super(result, key, flags, expires, value, Version.ZERO, timeout);
+        super(result, key, flags, expires, value, Version.NONE, timeout);
     }
 
     @Override
