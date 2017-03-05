@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @NotThreadSafe
+@RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
 
     private static final Duration TIMEOUT = Duration.ofHours(2);
@@ -137,10 +138,8 @@ public class MemcakeTest {
         });
     }
 
-    @Test
-    public void checkAddSuccess() throws ExecutionException, InterruptedException {
-        Entry e = new Entry(new byte[]{1,2,3}, new byte[]{3,2,1});
-        int flags = 4;
+    @Property
+    public void checkAddSuccess(Entry e, int flags) throws ExecutionException, InterruptedException {
         CompletableFuture<Version> f = mc.add(e.key(), e.value())
                                          .flags(flags)
                                          .execute();
@@ -152,10 +151,8 @@ public class MemcakeTest {
         assertThat(v.getVersion()).isEqualTo(vr);
     }
 
-    @Test
-    public void checkAddFailure() throws ExecutionException, InterruptedException {
-        Entry e = new Entry(new byte[]{1,2,3}, new byte[]{3,2,1});
-        int flags =7;
+    @Property
+    public void checkAddFailure(Entry e, int flags) throws ExecutionException, InterruptedException {
         mc.set(e.key(), e.value()).execute().get();
 
         CompletableFuture<Version> f = mc.add(e.key(), new byte[]{1, 2, 3})
@@ -165,9 +162,8 @@ public class MemcakeTest {
         assertThatThrownBy(f::get).hasCauseInstanceOf(StatusException.class);
     }
 
-    @Test
-    public void checkAddQuiet() throws Exception {
-        Entry e = new Entry(new byte[]{1,2,3}, new byte[]{3,2,1});
+    @Property
+    public void checkAddQuiet(Entry e) throws Exception {
         mc.addq(e.key(), e.value())
           .timeout(TIMEOUT)
           .execute();
@@ -175,9 +171,8 @@ public class MemcakeTest {
         assertThat(v.getValue()).isEqualTo(e.value());
     }
 
-    @Test
-    public void checkAddQuietFails() throws Exception {
-        Entry e = new Entry(new byte[]{1,2,3}, new byte[]{3,2,1});
+    @Property
+    public void checkAddQuietFails(Entry e) throws Exception {
         mc.set(e.key(), e.value()).execute().get();
 
         CompletableFuture<Void> f = mc.addq(e.key(), new byte[]{1, 3, 3})
