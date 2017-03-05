@@ -19,7 +19,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.targetJdk>1.8</project.build.targetJdk>
-        <basepom.maven.version>[3.2,)</basepom.maven.version>
+        <basepom.maven.version>3.2</basepom.maven.version>
     </properties>
 
     <dependencies>
