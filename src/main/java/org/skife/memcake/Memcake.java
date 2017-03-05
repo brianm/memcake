@@ -63,7 +63,7 @@ public class Memcake implements AutoCloseable {
                                  Duration defaultTimeout,
                                  Function<InetSocketAddress, CompletableFuture<Connection>> connector) throws ExecutionException, InterruptedException {
         if (servers.size() != 1) {
-            throw new IllegalArgumentException("in this version of memcake, only one server is supported. Sorry.");
+            throw new IllegalArgumentException("in this cas of memcake, only one server is supported. Sorry.");
         }
         return new Memcake(connector, servers.iterator().next(), defaultTimeout);
     }
@@ -118,5 +118,13 @@ public class Memcake implements AutoCloseable {
 
     public AddQuietOp addq(byte[] key, byte[] value) {
         return new AddQuietOp(this, key, value, timeout);
+    }
+
+    public AppendOp append(byte[] key, byte[] value) {
+        return new AppendOp(this, key, value, timeout);
+    }
+
+    public AppendOp append(String key, String value) {
+        return append(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
     }
 }

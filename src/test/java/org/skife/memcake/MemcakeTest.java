@@ -74,7 +74,7 @@ public class MemcakeTest {
                                           .expires(0)
                                           .flags(1)
                                           .timeout(Duration.ofHours(1))
-                                          .version(Version.NONE)
+                                          .cas(Version.NONE)
                                           .execute();
         Version ver = fs.get();
 
@@ -93,7 +93,7 @@ public class MemcakeTest {
                                           .expires(0)
                                           .flags(1)
                                           .timeout(Duration.ofHours(1))
-                                          .version(Version.NONE)
+                                          .cas(Version.NONE)
                                           .execute();
         Version ver = fs.get();
 
@@ -183,5 +183,19 @@ public class MemcakeTest {
 
         assertThat(v.getValue()).isEqualTo(e.value());
         assertThatThrownBy(f::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testAppend() throws Exception {
+        Version ver = mc.set("hello", "wo").execute().get();
+        mc.append("hello", "rld")
+          .cas(ver)
+          .timeout(Duration.ofSeconds(17))
+          .execute();
+        Optional<Value> ov = mc.get("hello").execute().get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
+        });
     }
 }

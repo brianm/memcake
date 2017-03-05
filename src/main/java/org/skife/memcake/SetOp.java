@@ -50,7 +50,7 @@ public class SetOp {
         return this;
     }
 
-    public SetOp version(Version version) {
+    public SetOp cas(Version version) {
         this.version = version;
         return this;
     }
