@@ -34,9 +34,6 @@ public class Entry {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                          .add("key", key)
-                          .add("value", value)
-                          .toString();
+        return String.format("Entry {k: %d, v: %d}", key.length, value.length);
     }
 }
