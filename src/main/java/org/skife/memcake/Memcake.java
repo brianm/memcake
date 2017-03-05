@@ -68,7 +68,8 @@ public class Memcake implements AutoCloseable {
         return new Memcake(connector, servers.iterator().next(), defaultTimeout);
     }
 
-    public static Memcake create(InetSocketAddress address, Duration defaultTimeout) throws ExecutionException, InterruptedException {
+    public static Memcake create(InetSocketAddress address,
+                                 Duration defaultTimeout) throws ExecutionException, InterruptedException {
         return create(Collections.singleton(address), defaultTimeout, (addr) -> {
             try {
                 return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
@@ -132,15 +133,23 @@ public class Memcake implements AutoCloseable {
         return append(key.getBytes(StandardCharsets.UTF_8), value);
     }
 
-    public AppendQuietOp appendq(byte[] key, byte[] value){
+    public AppendQuietOp appendq(byte[] key, byte[] value) {
         return new AppendQuietOp(this, key, value, timeout);
     }
 
-    public AppendQuietOp appendq(String key, byte[] value){
+    public AppendQuietOp appendq(String key, byte[] value) {
         return appendq(key.getBytes(StandardCharsets.UTF_8), value);
     }
 
-    public AppendQuietOp appendq(String key, String value){
+    public AppendQuietOp appendq(String key, String value) {
         return appendq(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public DecrementOp decrement(byte[] key, int delta) {
+        return new DecrementOp(this, key, delta, timeout);
+    }
+
+    public DecrementOp decrement(String key, int delta) {
+        return decrement(key.getBytes(StandardCharsets.UTF_8), delta);
     }
 }

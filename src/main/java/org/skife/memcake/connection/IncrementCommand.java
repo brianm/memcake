@@ -46,14 +46,20 @@ class IncrementCommand extends Command {
     Responder createResponder(int opaque) {
         return new Responder(opaque, result::completeExceptionally, (s) -> {
             Response r = s.get(opaque);
-            byte[] vbytes = r.getValue();
-            if (vbytes.length != 8) {
-                result.completeExceptionally(new IllegalStateException("counter value was not a long (8 bytes!)"));
-                return;
-            }
+            if (r.getStatus() == 0) {
+                // found
+                byte[] vbytes = r.getValue();
+                if (vbytes.length != 8) {
+                    result.completeExceptionally(new IllegalStateException("counter value was not a long (8 bytes!)"));
+                    return;
+                }
 
-            Counter c = new Counter(ByteBuffer.wrap(vbytes).getLong(), new Version(r.getVersion()));
-            result.complete(c);
+                Counter c = new Counter(ByteBuffer.wrap(vbytes).getLong(), new Version(r.getVersion()));
+                result.complete(c);
+            }
+            else {
+                result.completeExceptionally(new StatusException(r.getStatus(), r.getError()));
+            }
         });
     }
 

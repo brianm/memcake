@@ -22,6 +22,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.skife.memcake.connection.Connection;
+import org.skife.memcake.connection.Counter;
 import org.skife.memcake.connection.StatusException;
 import org.skife.memcake.connection.Value;
 import org.skife.memcake.connection.Version;
@@ -211,5 +212,30 @@ public class MemcakeTest {
         ov.ifPresent((v) -> {
             assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
         });
+    }
+
+    @Test
+    public void testDecrementSettingInitial() throws Exception {
+        CompletableFuture<Counter> cf = mc.decrement("hello", 1)
+                                          .initialValue(3)
+                                          .execute();
+        Counter c = cf.get();
+        assertThat(c.getValue()).isEqualTo(3);
+    }
+
+    @Test
+    public void testDecrementFailOnNotFoundByDefault() throws Exception {
+        CompletableFuture<Counter> cf = mc.decrement("hello", 1)
+                                          .execute();
+        assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testDecrementAfterSet() throws Exception {
+        mc.set("hello", "3").execute();
+        Counter c = mc.decrement("hello", 1)
+                      .execute()
+                      .get();
+        assertThat(c.getValue()).isEqualTo(2);
     }
 }
