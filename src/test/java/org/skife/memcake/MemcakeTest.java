@@ -1,12 +1,16 @@
 package org.skife.memcake;
 
+import com.pholser.junit.quickcheck.Property;
+import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.skife.memcake.connection.Connection;
 import org.skife.memcake.connection.Value;
 import org.skife.memcake.connection.Version;
+import org.skife.memcake.testing.Entry;
 import org.skife.memcake.testing.MemcachedRule;
 
 import java.nio.channels.AsynchronousSocketChannel;
@@ -19,32 +23,36 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
+
+    private static final Duration TIMEOUT = Duration.ofSeconds(2);
+    private static ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
 
     @ClassRule
     public static final MemcachedRule memcached = new MemcachedRule();
 
     private Connection c;
-    private static ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
+    private Memcake mc;
 
     @Before
     public void setUp() throws Exception {
         c = Connection.open(memcached.getAddress(),
                             AsynchronousSocketChannel.open(),
                             cron).get();
-
-        // yes yes, we use the thing under test to clean up after itself. It works though.
         c.flush(0, Duration.ofDays(1)).get();
+
+        this.mc = Memcake.create(memcached.getAddress(), TIMEOUT);
     }
 
     @After
     public void tearDown() throws Exception {
         c.close();
+        mc.close();
     }
 
     @Test
     public void testSetWithStrings() throws Exception {
-        Memcake mc = Memcake.create(memcached.getAddress());
         CompletableFuture<Version> fs = mc.set("hello", "world")
                                           .expires(0)
                                           .flags(1)
@@ -53,7 +61,7 @@ public class MemcakeTest {
                                           .execute();
         Version ver = fs.get();
 
-        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8), Duration.ofDays(1)).get();
+        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8), TIMEOUT).get();
         assertThat(val).isPresent();
         val.ifPresent((v) -> {
             assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
@@ -64,8 +72,6 @@ public class MemcakeTest {
 
     @Test
     public void testGetWithStrings() throws Exception {
-        Memcake mc = Memcake.create(memcached.getAddress());
-
         CompletableFuture<Version> fs = mc.set("hello", "world")
                                           .expires(0)
                                           .flags(1)
@@ -88,10 +94,7 @@ public class MemcakeTest {
 
     @Test
     public void testGetWithMappedResult() throws Exception {
-        Memcake mc = Memcake.create(memcached.getAddress());
-
         mc.set("hello", "world").execute().get();
-
         CompletableFuture<Optional<String>> rs = mc.get("hello")
                                                    .execute()
                                                    .thenApply(ov -> ov.map(v -> new String(v.getValue(),
@@ -99,5 +102,23 @@ public class MemcakeTest {
 
         Optional<String> ov = rs.get();
         assertThat(ov).contains("world");
+    }
+
+    @Property
+    public void checkGetKCorrect(Entry e) throws Exception {
+        mc.set(e.key(), e.value()).execute().get();
+        CompletableFuture<Optional<Value>> cf = mc.getk(e.key())
+                                                  .timeout(TIMEOUT)
+                                                  .execute();
+        Optional<Value> ov = cf.get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getKey()).isPresent();
+            v.getKey().ifPresent((k) -> {
+                assertThat(k).isEqualTo(e.key());
+            });
+            assertThat(v.getValue()).isEqualTo(e.value());
+        });
+
     }
 }

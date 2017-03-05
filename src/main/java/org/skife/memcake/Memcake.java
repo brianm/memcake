@@ -82,7 +82,6 @@ public class Memcake implements AutoCloseable {
                 }
             });
         }
-
     }
 
     @Override
@@ -102,8 +101,8 @@ public class Memcake implements AutoCloseable {
         return new Memcake(connector, servers.iterator().next(), defaultTimeout);
     }
 
-    public static Memcake create(InetSocketAddress address) {
-        return create(Collections.singleton(address), Duration.ofSeconds(2), (addr) -> {
+    public static Memcake create(InetSocketAddress address, Duration defaultTimeout) {
+        return create(Collections.singleton(address), defaultTimeout, (addr) -> {
             try {
                 return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
             } catch (IOException e) {
@@ -138,4 +137,11 @@ public class Memcake implements AutoCloseable {
         return new GetOp(this, key, defaultTimeout);
     }
 
+    public GetWithKeyOp getk(byte[] key) {
+        return new GetWithKeyOp(this, key, defaultTimeout);
+    }
+
+    public GetWithKeyOp getk(String key) {
+        return getk(key.getBytes(StandardCharsets.UTF_8));
+    }
 }
