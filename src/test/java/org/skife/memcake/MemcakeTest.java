@@ -15,6 +15,7 @@ package org.skife.memcake;
 
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
+import net.jcip.annotations.NotThreadSafe;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -39,6 +40,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@NotThreadSafe
 @RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
 
