@@ -1,5 +1,7 @@
 package org.skife.memcake.testing;
 
+import com.google.common.base.MoreObjects;
+
 public class Entry {
     private final byte[] key;
     private final byte[] value;
@@ -15,5 +17,13 @@ public class Entry {
 
     public byte[] value() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                          .add("key", key)
+                          .add("value", value)
+                          .toString();
     }
 }

@@ -27,61 +27,67 @@ public class Memcake implements AutoCloseable {
 
     private final Function<InetSocketAddress, CompletableFuture<Connection>> connector;
     private final InetSocketAddress addr;
-    private final Duration defaultTimeout;
+    private final Duration timeout;
 
     private Memcake(Function<InetSocketAddress, CompletableFuture<Connection>> connector,
-                    InetSocketAddress addr, Duration defaultTimeout) {
+                    InetSocketAddress addr, Duration timeout) {
         this.connector = connector;
         this.addr = addr;
-        this.defaultTimeout = defaultTimeout;
+        this.timeout = timeout;
         connect();
     }
 
     private void connect() {
-        Runnable reconnect = () -> {
-            // jitter between 100ns to timeout, then try to connect
-            long jitter = ThreadLocalRandom.current().nextLong(100, defaultTimeout.getNano());
-            cron.schedule(this::connect, jitter, TimeUnit.NANOSECONDS);
-        };
 
-        // cleanly close the current connection
-        CompletableFuture<Connection> current = conn.get();
-        if (current != null) {
-            current.whenComplete((c, e) -> {
-                if (c != null) {
-                    c.close();
-                }
-            });
-        }
-
-        final CompletableFuture<Connection> fc;
-        try {
-            fc = connector.apply(addr);
-        } catch (RuntimeException e) {
-            // connector is user supplied, so be careful in face of unexpected runtime exceptions :-)
-            reconnect.run();
-            return;
-        }
-
-        if (conn.compareAndSet(current, fc)) {
-            // we set the current connection, wire up network failure listener
-            fc.whenComplete((c, e) -> {
-                if (e != null) {
-                    reconnect.run();
-                    return;
-                }
+        this.conn.set(connector.apply(addr).whenComplete((c, e) -> {
+            if (c!= null) {
                 c.addNetworkFailureListener(this::connect);
-            });
-        }
-        else {
-            // we got into a connect race, we lost, kill this connection once it is up.
-            fc.cancel(true);
-            fc.whenComplete((c, e) -> {
-                if (c != null) {
-                    c.close();
-                }
-            });
-        }
+            }
+        }));
+//        Runnable reconnect = () -> {
+//            // jitter between 100ns to timeout, then try to connect
+//            long jitter = ThreadLocalRandom.current().nextLong(100, timeout.getNano());
+//            cron.schedule(this::connect, jitter, TimeUnit.NANOSECONDS);
+//        };
+//
+//        // cleanly close the current connection
+//        CompletableFuture<Connection> current = conn.get();
+//        if (current != null) {
+//            current.whenComplete((c, e) -> {
+//                if (c != null) {
+//                    c.close();
+//                }
+//            });
+//        }
+//
+//        final CompletableFuture<Connection> fc;
+//        try {
+//            fc = connector.apply(addr);
+//        } catch (RuntimeException e) {
+//            // connector is user supplied, so be careful in face of unexpected runtime exceptions :-)
+//            reconnect.run();
+//            return;
+//        }
+//
+//        if (conn.compareAndSet(current, fc)) {
+//            // we set the current connection, wire up network failure listener
+//            fc.whenComplete((c, e) -> {
+//                if (e != null) {
+//                    reconnect.run();
+//                    return;
+//                }
+//                c.addNetworkFailureListener(this::connect);
+//            });
+//        }
+//        else {
+//            // we got into a connect race, we lost, kill this connection once it is up.
+//            fc.cancel(true);
+//            fc.whenComplete((c, e) -> {
+//                if (c != null) {
+//                    c.close();
+//                }
+//            });
+//        }
     }
 
     @Override
@@ -118,7 +124,7 @@ public class Memcake implements AutoCloseable {
     // public API
 
     public SetOp set(byte[] key, byte[] value) {
-        return new SetOp(this, key, value, defaultTimeout);
+        return new SetOp(this, key, value, timeout);
     }
 
     public SetOp set(String key, String value) {
@@ -134,11 +140,11 @@ public class Memcake implements AutoCloseable {
     }
 
     public GetOp get(byte[] key) {
-        return new GetOp(this, key, defaultTimeout);
+        return new GetOp(this, key, timeout);
     }
 
     public GetWithKeyOp getk(byte[] key) {
-        return new GetWithKeyOp(this, key, defaultTimeout);
+        return new GetWithKeyOp(this, key, timeout);
     }
 
     public GetWithKeyOp getk(String key) {
@@ -146,6 +152,10 @@ public class Memcake implements AutoCloseable {
     }
 
     public AddOp add(byte[] key, byte[] value) {
-        return new AddOp(this, key, value, defaultTimeout);
+        return new AddOp(this, key, value, timeout);
+    }
+
+    public AddQuietOp addq(byte[] key, byte[] value) {
+        return new AddQuietOp(this, key, value, timeout);
     }
 }

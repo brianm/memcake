@@ -2,6 +2,7 @@ package org.skife.memcake;
 
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
+import com.sun.xml.internal.ws.api.message.Packet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
 
-    private static final Duration TIMEOUT = Duration.ofSeconds(2);
+    private static final Duration TIMEOUT = Duration.ofHours(2);
     private static ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
 
     @ClassRule
@@ -142,7 +143,31 @@ public class MemcakeTest {
 
         CompletableFuture<Version> f = mc.add(e.key(), new byte[]{1, 2, 3})
                                          .flags(flags)
+                                         .expires(8765)
                                          .execute();
+        assertThatThrownBy(f::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Property
+    public void checkAddQuiet(Entry e) throws Exception {
+        mc.addq(e.key(), e.value())
+          .timeout(TIMEOUT)
+          .execute();
+        Value v = mc.get(e.key()).execute().get().get();
+        assertThat(v.getValue()).isEqualTo(e.value());
+    }
+
+    @Property
+    public void checkAddQuietFails(Entry e) throws Exception {
+        mc.set(e.key(), e.value()).execute().get();
+
+        CompletableFuture<Void> f = mc.addq(e.key(), new byte[]{1, 3, 3})
+                                      .timeout(TIMEOUT)
+                                      .execute();
+
+        Value v = mc.get(e.key()).execute().get().get();
+
+        assertThat(v.getValue()).isEqualTo(e.value());
         assertThatThrownBy(f::get).hasCauseInstanceOf(StatusException.class);
     }
 }

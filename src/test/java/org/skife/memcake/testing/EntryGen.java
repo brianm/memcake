@@ -18,7 +18,7 @@ public class EntryGen extends Generator<Entry> {
     }
 
     private byte[] key(SourceOfRandomness random) {
-        int len = random.nextInt(1, 128);
+        int len = random.nextInt(1, 64);
         byte[] rs = new byte[len];
         for (int i = 0; i < len; i++) {
             rs[i] = random.nextByte(Byte.MIN_VALUE, Byte.MAX_VALUE);
@@ -27,7 +27,7 @@ public class EntryGen extends Generator<Entry> {
     }
 
     private byte[] value(SourceOfRandomness random) {
-        int len = random.nextInt(1, 8192);
+        int len = random.nextInt(1, 1024);
         byte[] rs = new byte[len];
         for (int i = 0; i < len; i++) {
             rs[i] = random.nextByte(Byte.MIN_VALUE, Byte.MAX_VALUE);

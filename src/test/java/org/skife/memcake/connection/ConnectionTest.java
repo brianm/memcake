@@ -348,8 +348,8 @@ public class ConnectionTest {
     }
 
     @Property
-    public void checkAddQuietlyAddsIfMissing(Entry entry) throws Exception {
-        c.addq(entry.key(), 0, 0, entry.value(), TIMEOUT);
+    public void checkAddQuietlyAddsIfMissing(Entry entry, int flags) throws Exception {
+        c.addq(entry.key(), flags, 0, entry.value(), TIMEOUT);
         assertThat(c.get(entry.key(), TIMEOUT).get().get().getValue()).isEqualTo(entry.value());
     }
 
