@@ -2,7 +2,6 @@ package org.skife.memcake;
 
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
-import com.sun.xml.internal.ws.api.message.Packet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
