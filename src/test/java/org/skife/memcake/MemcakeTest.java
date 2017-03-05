@@ -198,4 +198,18 @@ public class MemcakeTest {
             assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
         });
     }
+
+    @Test
+    public void testAppendQ() throws Exception {
+        Version ver = mc.set("hello", "wo").execute().get();
+        mc.appendq("hello", "rld")
+          .cas(ver)
+          .timeout(Duration.ofSeconds(17))
+          .execute();
+        Optional<Value> ov = mc.get("hello").execute().get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
+        });
+    }
 }

@@ -127,4 +127,20 @@ public class Memcake implements AutoCloseable {
     public AppendOp append(String key, String value) {
         return append(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
     }
+
+    public AppendOp append(String key, byte[] value) {
+        return append(key.getBytes(StandardCharsets.UTF_8), value);
+    }
+
+    public AppendQuietOp appendq(byte[] key, byte[] value){
+        return new AppendQuietOp(this, key, value, timeout);
+    }
+
+    public AppendQuietOp appendq(String key, byte[] value){
+        return appendq(key.getBytes(StandardCharsets.UTF_8), value);
+    }
+
+    public AppendQuietOp appendq(String key, String value){
+        return appendq(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
 }
