@@ -117,8 +117,24 @@ public class Memcake implements AutoCloseable {
         return new AddOp(this, key, value, timeout);
     }
 
+    public AddOp add(String key, String value) {
+        return add(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public AddOp add(String key, byte[] value) {
+        return add(key.getBytes(StandardCharsets.UTF_8), value);
+    }
+
     public AddQuietOp addq(byte[] key, byte[] value) {
         return new AddQuietOp(this, key, value, timeout);
+    }
+
+    public AddQuietOp addq(String key, String value) {
+        return addq(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public AddQuietOp addq(String key, byte[] value) {
+        return addq(key.getBytes(StandardCharsets.UTF_8), value);
     }
 
     public AppendOp append(byte[] key, byte[] value) {
@@ -159,5 +175,13 @@ public class Memcake implements AutoCloseable {
 
     public DecrementQuietOp decrementq(String key, int delta) {
         return decrementq(key.getBytes(StandardCharsets.UTF_8), delta);
+    }
+
+    public DeleteOp delete(byte[] key) {
+        return new DeleteOp(this, key, timeout);
+    }
+
+    public DeleteOp delete(String key) {
+        return delete(key.getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -264,4 +264,17 @@ public class MemcakeTest {
         Value v = mc.get("hello").execute().get().get();
         assertThat(v.getValue()).isEqualTo("2".getBytes(StandardCharsets.UTF_8));
     }
+
+    @Test
+    public void testDeleteOp() throws Exception {
+        mc.addq("jello", "mold").execute();
+        mc.delete("jello").execute();
+        assertThat(mc.get("jello").execute().get()).isEmpty();
+    }
+
+    @Test
+    public void testDeleteOpMissing() throws Exception {
+        CompletableFuture<Void> c = mc.delete("jello").execute();
+        assertThatThrownBy(c::get).hasCauseInstanceOf(StatusException.class);
+    }
 }
