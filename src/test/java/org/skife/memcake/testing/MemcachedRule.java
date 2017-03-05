@@ -30,9 +30,21 @@ public class MemcachedRule extends ExternalResource {
 
     private StartedProcess process;
     private int port;
+    private boolean local = false;
 
     @Override
     protected void before() throws Throwable {
+
+        // first see if we have a memcached on localhost at 11211
+        if (localAvail() ) {
+            log.info("using localhost memcached");
+            local = true;
+            port = 11211;
+            return;
+        }
+
+        log.info("creating child memcached");
+
         this.port = findUnusedPort();
         this.process = new ProcessExecutor().command("memcached", "-p", port + "")
                                             .redirectOutput(Slf4jStream.of(log).asDebug())
@@ -52,9 +64,22 @@ public class MemcachedRule extends ExternalResource {
 
     }
 
+    private boolean localAvail() throws IOException {
+        Socket sock = new Socket();
+        try {
+            sock.connect(new InetSocketAddress("localhost", 11211));
+            sock.close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     @Override
     protected void after() {
-        process.getProcess().destroyForcibly();
+        if (!local) {
+            process.getProcess().destroyForcibly();
+        }
     }
 
     public InetSocketAddress getAddress() {
