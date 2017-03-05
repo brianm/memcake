@@ -7,9 +7,13 @@ import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -34,13 +38,51 @@ public class Memcake implements AutoCloseable {
     }
 
     private void connect() {
-        conn.set(connector.apply(addr).whenComplete((c, e) -> {
-            if (e != null) {
-                connect();
-                return;
-            }
-            c.addNetworkFailureListener(this::connect);
-        }));
+        Runnable reconnect = () -> {
+            // jitter between 100ns to timeout, then try to connect
+            long jitter = ThreadLocalRandom.current().nextLong(100, defaultTimeout.getNano());
+            cron.schedule(this::connect, jitter, TimeUnit.NANOSECONDS);
+        };
+
+        // cleanly close the current connection
+        CompletableFuture<Connection> current = conn.get();
+        if (current != null) {
+            current.whenComplete((c, e) -> {
+                if (c != null) {
+                    c.close();
+                }
+            });
+        }
+
+        final CompletableFuture<Connection> fc;
+        try {
+            fc = connector.apply(addr);
+        } catch (RuntimeException e) {
+            // connector is user supplied, so be careful in face of unexpected runtime exceptions :-)
+            reconnect.run();
+            return;
+        }
+
+        if (conn.compareAndSet(current, fc)) {
+            // we set the current connection, wire up network failure listener
+            fc.whenComplete((c, e) -> {
+                if (e != null) {
+                    reconnect.run();
+                    return;
+                }
+                c.addNetworkFailureListener(this::connect);
+            });
+        }
+        else {
+            // we got into a connect race, we lost, kill this connection once it is up.
+            fc.cancel(true);
+            fc.whenComplete((c, e) -> {
+                if (c != null) {
+                    c.close();
+                }
+            });
+        }
+
     }
 
     @Override
@@ -51,17 +93,23 @@ public class Memcake implements AutoCloseable {
         }
     }
 
-    public static Memcake create(InetSocketAddress... address) {
-        if (address.length != 1) {
+    public static Memcake create(Set<InetSocketAddress> servers,
+                                 Duration defaultTimeout,
+                                 Function<InetSocketAddress, CompletableFuture<Connection>> connector) {
+        if (servers.size() != 1) {
             throw new IllegalArgumentException("in this version of memcake, only one server is supported. Sorry.");
         }
-        return new Memcake((a) -> {
+        return new Memcake(connector, servers.iterator().next(), defaultTimeout);
+    }
+
+    public static Memcake create(InetSocketAddress address) {
+        return create(Collections.singleton(address), Duration.ofSeconds(2), (addr) -> {
             try {
-                return Connection.open(a, AsynchronousSocketChannel.open(), cron);
+                return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
             } catch (IOException e) {
-                throw new IllegalStateException("unable to connect", e);
+                throw new IllegalStateException(e);
             }
-        }, address[0], Duration.ofSeconds(1));
+        });
     }
 
     public <T> CompletableFuture<T> call(byte[] key, Function<Connection, CompletableFuture<T>> f) {

@@ -192,7 +192,7 @@ public class Connection implements AutoCloseable {
     public void close() {
         if (open.compareAndSet(true, false)) {
             try {
-                quit(Duration.ZERO).get();
+                quit(Duration.ofSeconds(30)).get();
             } catch (Exception e) {
                 // close quietly
             }

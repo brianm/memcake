@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitQuickcheck.class)
 public class ConnectionTest {
 
-    private static final Duration TIMEOUT = Duration.ofMinutes(1);
+    private static final Duration TIMEOUT = Duration.ofSeconds(2);
 
     @ClassRule
     public static final MemcachedRule mc = new MemcachedRule();
@@ -410,7 +410,7 @@ public class ConnectionTest {
     public void testQuitQuietly() throws Exception {
         c.quitq(TIMEOUT);
         CompletableFuture<Void> noop = c.noop(TIMEOUT);
-        assertThatThrownBy(noop::get).hasCauseInstanceOf(IOException.class);
+        assertThatThrownBy(noop::get).hasCauseInstanceOf(Exception.class);
     }
 
     @Test
