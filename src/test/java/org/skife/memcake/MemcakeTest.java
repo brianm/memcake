@@ -277,4 +277,19 @@ public class MemcakeTest {
         CompletableFuture<Void> c = mc.delete("jello").execute();
         assertThatThrownBy(c::get).hasCauseInstanceOf(StatusException.class);
     }
+
+    @Test
+    public void testDeleteQOp() throws Exception {
+        mc.addq("jello", "mold").execute();
+        mc.deleteq("jello").execute();
+        assertThat(mc.get("jello").execute().get()).isEmpty();
+    }
+
+    @Test
+    public void testDeleteQOpMissing() throws Exception {
+        CompletableFuture<Void> c = mc.deleteq("jello").execute();
+        assertThat(mc.get("jello").execute().get()).isEmpty();
+
+        assertThatThrownBy(c::get).hasCauseInstanceOf(StatusException.class);
+    }
 }
