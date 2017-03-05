@@ -61,7 +61,7 @@ public class Memcake implements AutoCloseable {
 
     public static Memcake create(Set<InetSocketAddress> servers,
                                  Duration defaultTimeout,
-                                 Function<InetSocketAddress, CompletableFuture<Connection>> connector) throws ExecutionException, InterruptedException {
+                                 Function<InetSocketAddress, CompletableFuture<Connection>> connector) throws Exception {
         if (servers.size() != 1) {
             throw new IllegalArgumentException("in this cas of memcake, only one server is supported. Sorry.");
         }
@@ -69,7 +69,7 @@ public class Memcake implements AutoCloseable {
     }
 
     public static Memcake create(InetSocketAddress address,
-                                 Duration defaultTimeout) throws ExecutionException, InterruptedException {
+                                 Duration defaultTimeout) throws Exception {
         return create(Collections.singleton(address), defaultTimeout, (addr) -> {
             try {
                 return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
@@ -151,5 +151,13 @@ public class Memcake implements AutoCloseable {
 
     public DecrementOp decrement(String key, int delta) {
         return decrement(key.getBytes(StandardCharsets.UTF_8), delta);
+    }
+
+    public DecrementQuietOp decrementq(byte[] key, int delta) {
+        return new DecrementQuietOp(this, key, delta, timeout);
+    }
+
+    public DecrementQuietOp decrementq(String key, int delta) {
+        return decrementq(key.getBytes(StandardCharsets.UTF_8), delta);
     }
 }

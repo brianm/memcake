@@ -238,4 +238,30 @@ public class MemcakeTest {
                       .get();
         assertThat(c.getValue()).isEqualTo(2);
     }
+
+    @Test
+    public void testDecrementQSettingInitial() throws Exception {
+        mc.decrementq("hello", 1)
+          .initialValue(3)
+          .execute();
+        Value v = mc.get("hello").execute().get().get();
+        assertThat(v.getValue()).isEqualTo("3".getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testDecrementQFailOnNotFoundByDefault() throws Exception {
+        CompletableFuture<Void> cf = mc.decrementq("hello", 1)
+                                       .execute();
+        assertThat(mc.get("hello").execute().get()).isEmpty();
+        assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testDecrementQAfterSet() throws Exception {
+        mc.set("hello", "3").execute();
+        mc.decrementq("hello", 1)
+          .execute();
+        Value v = mc.get("hello").execute().get().get();
+        assertThat(v.getValue()).isEqualTo("2".getBytes(StandardCharsets.UTF_8));
+    }
 }
