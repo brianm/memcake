@@ -8,6 +8,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.skife.memcake.connection.Connection;
+import org.skife.memcake.connection.StatusException;
 import org.skife.memcake.connection.Value;
 import org.skife.memcake.connection.Version;
 import org.skife.memcake.testing.Entry;
@@ -18,10 +19,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
@@ -37,11 +40,10 @@ public class MemcakeTest {
 
     @Before
     public void setUp() throws Exception {
-        c = Connection.open(memcached.getAddress(),
-                            AsynchronousSocketChannel.open(),
-                            cron).get();
+        this.c = Connection.open(memcached.getAddress(),
+                                 AsynchronousSocketChannel.open(),
+                                 cron).get();
         c.flush(0, Duration.ofDays(1)).get();
-
         this.mc = Memcake.create(memcached.getAddress(), TIMEOUT);
     }
 
@@ -119,6 +121,28 @@ public class MemcakeTest {
             });
             assertThat(v.getValue()).isEqualTo(e.value());
         });
+    }
 
+    @Property
+    public void checkAddSuccess(Entry e, int flags) throws ExecutionException, InterruptedException {
+        CompletableFuture<Version> f = mc.add(e.key(), e.value())
+                                         .flags(flags)
+                                         .execute();
+        Version vr = f.get();
+
+        Value v = mc.get(e.key()).execute().get().get();
+        assertThat(v.getValue()).isEqualTo(e.value());
+        assertThat(v.getFlags()).isEqualTo(flags);
+        assertThat(v.getVersion()).isEqualTo(vr);
+    }
+
+    @Property
+    public void checkAddFailure(Entry e, int flags) throws ExecutionException, InterruptedException {
+        mc.set(e.key(), e.value()).execute().get();
+
+        CompletableFuture<Version> f = mc.add(e.key(), new byte[]{1, 2, 3})
+                                         .flags(flags)
+                                         .execute();
+        assertThatThrownBy(f::get).hasCauseInstanceOf(StatusException.class);
     }
 }

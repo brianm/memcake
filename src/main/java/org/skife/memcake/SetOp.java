@@ -6,14 +6,14 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 public class SetOp {
-    private final Memcake memcake;
+    protected final Memcake memcake;
 
-    private final byte[] key;
-    private final byte[] value;
-    private int expires = 0;
-    private int flags = 0;
-    private Version version = Version.NONE;
-    private Duration timeout;
+    protected final byte[] key;
+    protected final byte[] value;
+    protected int expires = 0;
+    protected int flags = 0;
+    protected Version version = Version.NONE;
+    protected Duration timeout;
 
     SetOp(Memcake memcake, byte[] key, byte[] value, Duration timeout) {
         this.memcake = memcake;
