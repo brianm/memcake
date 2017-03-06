@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.skife.memcake.connection.Connection;
 import org.skife.memcake.connection.Counter;
 import org.skife.memcake.connection.StatusException;
 import org.skife.memcake.connection.Value;
@@ -29,14 +28,11 @@ import org.skife.memcake.connection.Version;
 import org.skife.memcake.testing.Entry;
 import org.skife.memcake.testing.MemcachedRule;
 
-import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,8 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
 
-    private static final Duration TIMEOUT = Duration.ofHours(2);
-    private static ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
+    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     @ClassRule
     public static final MemcachedRule memcached = new MemcachedRule();
@@ -299,5 +294,25 @@ public class MemcakeTest {
         mc.set("hello", "world").execute();
         mc.flushq().execute();
         assertThat(mc.get("hello").execute().get()).isEmpty();
+    }
+
+    @Test
+    public void testGetkq() throws Exception {
+        mc.set("hello", "world").execute();
+        Optional<Value> ov = mc.getkq("hello")
+                               .execute()
+                               .get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getKey().get()).isEqualTo("hello".getBytes(StandardCharsets.UTF_8));
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
+        });
+    }
+
+    @Test
+    public void testGetKqMissing() throws Exception {
+        CompletableFuture<Optional<Value>> f = mc.getkq("hello").execute();
+        mc.add("woof", "meow").execute().get();
+        assertThat(f).isCompletedWithValue(Optional.empty());
     }
 }

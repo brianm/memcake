@@ -200,4 +200,12 @@ public class Memcake implements AutoCloseable {
     public FlushQuietOp flushq() {
         return new FlushQuietOp(this, timeout);
     }
+
+    public GetWithKeyQuietOp getkq(byte[] key) {
+        return new GetWithKeyQuietOp(this, key, timeout);
+    }
+
+    public GetWithKeyQuietOp getkq(String key) {
+        return getkq(key.getBytes(StandardCharsets.UTF_8));
+    }
 }
