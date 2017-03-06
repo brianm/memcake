@@ -208,4 +208,12 @@ public class Memcake implements AutoCloseable {
     public GetWithKeyQuietOp getkq(String key) {
         return getkq(key.getBytes(StandardCharsets.UTF_8));
     }
+
+    public GetQuietOp getq(byte[] key) {
+        return new GetQuietOp(this, key, timeout);
+    }
+
+    public GetQuietOp getq(String key) {
+        return getq(key.getBytes(StandardCharsets.UTF_8));
+    }
 }

@@ -315,4 +315,25 @@ public class MemcakeTest {
         mc.add("woof", "meow").execute().get();
         assertThat(f).isCompletedWithValue(Optional.empty());
     }
+
+    @Test
+    public void testGetq() throws Exception {
+        mc.set("hello", "world").execute();
+        Optional<Value> ov = mc.getq("hello")
+                               .execute()
+                               .get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getKey()).isEmpty();
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
+        });
+    }
+
+    @Test
+    public void testGetqMissing() throws Exception {
+        CompletableFuture<Optional<Value>> f = mc.getq("hello").execute();
+        mc.add("woof", "meow").execute().get();
+        assertThat(f).isCompletedWithValue(Optional.empty());
+    }
+
 }
