@@ -293,4 +293,11 @@ public class MemcakeTest {
         mc.flush().execute();
         assertThat(mc.get("hello").execute().get()).isEmpty();
     }
+
+    @Test
+    public void testFlushQ() throws Exception {
+        mc.set("hello", "world").execute();
+        mc.flushq().execute();
+        assertThat(mc.get("hello").execute().get()).isEmpty();
+    }
 }

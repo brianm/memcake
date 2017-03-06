@@ -196,4 +196,8 @@ public class Memcake implements AutoCloseable {
     public FlushOp flush() {
         return new FlushOp(this, timeout);
     }
+
+    public FlushQuietOp flushq() {
+        return new FlushQuietOp(this, timeout);
+    }
 }

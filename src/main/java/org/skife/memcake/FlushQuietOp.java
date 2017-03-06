@@ -17,22 +17,22 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 // TODO option to accept a key to shard to that key?
-public class FlushOp {
+public class FlushQuietOp {
     private final Memcake memcake;
     private Duration timeout;
     private int expires = 0;
 
-    FlushOp(Memcake memcake, Duration timeout) {
+    FlushQuietOp(Memcake memcake, Duration timeout) {
         this.memcake = memcake;
         this.timeout = timeout;
     }
 
-    public FlushOp expires(int when) {
+    public FlushQuietOp expires(int when) {
         this.expires = when;
         return this;
     }
 
-    public FlushOp timeout(Duration timeout) {
+    public FlushQuietOp timeout(Duration timeout) {
         this.timeout = timeout;
         return this;
     }
