@@ -51,21 +51,16 @@ public class MemcakeTest {
     @ClassRule
     public static final MemcachedRule memcached = new MemcachedRule();
 
-    private Connection c;
     private Memcake mc;
 
     @Before
     public void setUp() throws Exception {
-        this.c = Connection.open(memcached.getAddress(),
-                                 AsynchronousSocketChannel.open(),
-                                 cron).get();
-        c.flush(0, Duration.ofDays(1)).get();
         this.mc = Memcake.create(memcached.getAddress(), TIMEOUT);
+        mc.flush().execute().get();
     }
 
     @After
     public void tearDown() throws Exception {
-        c.close();
         mc.close();
     }
 
@@ -79,7 +74,7 @@ public class MemcakeTest {
                                           .execute();
         Version ver = fs.get();
 
-        Optional<Value> val = c.get("hello".getBytes(StandardCharsets.UTF_8), TIMEOUT).get();
+        Optional<Value> val = mc.get("hello").execute().get();
         assertThat(val).isPresent();
         val.ifPresent((v) -> {
             assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
