@@ -336,4 +336,29 @@ public class MemcakeTest {
         assertThat(f).isCompletedWithValue(Optional.empty());
     }
 
+
+    @Test
+    public void testIncrementSetInitial() throws Exception {
+        CompletableFuture<Counter> cf = mc.increment("hello", 1)
+                                          .initialValue(3)
+                                          .execute();
+        Counter c = cf.get();
+        assertThat(c.getValue()).isEqualTo(3);
+    }
+
+    @Test
+    public void testIncementFailOnNotFoundByDefault() throws Exception {
+        CompletableFuture<Counter> cf = mc.increment("hello", 1)
+                                          .execute();
+        assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testIncrementAfterSet() throws Exception {
+        mc.set("hello", "3").execute();
+        Counter c = mc.increment("hello", 1)
+                      .execute()
+                      .get();
+        assertThat(c.getValue()).isEqualTo(4);
+    }
 }
