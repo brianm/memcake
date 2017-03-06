@@ -192,4 +192,8 @@ public class Memcake implements AutoCloseable {
     public DeleteQuietOp deleteq(String key) {
         return deleteq(key.getBytes(StandardCharsets.UTF_8));
     }
+
+    public FlushOp flush() {
+        return new FlushOp(this, timeout);
+    }
 }

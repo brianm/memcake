@@ -291,4 +291,11 @@ public class MemcakeTest {
         assertThat(mc.get("jello").execute().get()).isEmpty();
         assertThatThrownBy(c::get).hasCauseInstanceOf(StatusException.class);
     }
+
+    @Test
+    public void testFlush() throws Exception {
+        mc.set("hello", "world").execute();
+        mc.flush().execute();
+        assertThat(mc.get("hello").execute().get()).isEmpty();
+    }
 }
