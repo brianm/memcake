@@ -387,4 +387,14 @@ public class MemcakeTest {
         Value v = mc.get("hello").execute().get().get();
         assertThat(v.getValue()).isEqualTo("4".getBytes(StandardCharsets.UTF_8));
     }
+
+    @Test
+    public void testNoOp() throws Exception {
+        CompletableFuture<Void> a =  mc.addq("joke", "haha").execute();
+        CompletableFuture<Void> f = mc.noop().execute();
+        f.get();
+
+        // the noop forces completion of previous quiet commands
+        assertThat(a).isCompleted();
+    }
 }
