@@ -169,6 +169,14 @@ public class Memcake implements AutoCloseable {
         return increment(key.getBytes(StandardCharsets.UTF_8), delta);
     }
 
+    public IncrementQuietOp incrementq(byte[] key, int delta) {
+        return new IncrementQuietOp(this, key, delta, timeout);
+    }
+
+    public IncrementQuietOp incrementq(String key, int delta) {
+        return incrementq(key.getBytes(StandardCharsets.UTF_8), delta);
+    }
+
     public DecrementOp decrement(byte[] key, int delta) {
         return new DecrementOp(this, key, delta, timeout);
     }

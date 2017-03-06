@@ -347,7 +347,7 @@ public class MemcakeTest {
     }
 
     @Test
-    public void testIncementFailOnNotFoundByDefault() throws Exception {
+    public void testIncrementFailOnNotFoundByDefault() throws Exception {
         CompletableFuture<Counter> cf = mc.increment("hello", 1)
                                           .execute();
         assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
@@ -360,5 +360,31 @@ public class MemcakeTest {
                       .execute()
                       .get();
         assertThat(c.getValue()).isEqualTo(4);
+    }
+
+    @Test
+    public void testIncrementQSettingInitial() throws Exception {
+        mc.incrementq("hello", 1)
+          .initialValue(3)
+          .execute();
+        Value v = mc.get("hello").execute().get().get();
+        assertThat(v.getValue()).isEqualTo("3".getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testIncrementQFailOnNotFoundByDefault() throws Exception {
+        CompletableFuture<Void> cf = mc.incrementq("hello", 1)
+                                       .execute();
+        assertThat(mc.get("hello").execute().get()).isEmpty();
+        assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testIncrementQAfterSet() throws Exception {
+        mc.set("hello", "3").execute();
+        mc.incrementq("hello", 1)
+          .execute();
+        Value v = mc.get("hello").execute().get().get();
+        assertThat(v.getValue()).isEqualTo("4".getBytes(StandardCharsets.UTF_8));
     }
 }
