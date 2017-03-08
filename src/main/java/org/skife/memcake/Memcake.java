@@ -288,4 +288,8 @@ public class Memcake implements AutoCloseable {
     public StatOp stat() {
         return new StatOp(this, timeout);
     }
+
+    public VersionOp version() {
+        return new VersionOp(this, timeout);
+    }
 }

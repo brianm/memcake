@@ -476,4 +476,11 @@ public class MemcakeTest {
         Map<String, String> stats = mc.stat().type("items").execute().get();
         assertThat(stats).containsEntry("items:1:number", "3");
     }
+
+    @Test
+    public void testVersion() throws Exception {
+        String version = mc.version().execute().get();
+        assertThat(version).isNotEmpty();
+
+    }
 }

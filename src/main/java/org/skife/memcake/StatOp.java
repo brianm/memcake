@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class StatOp {
     private final Memcake memcake;
-    private final Duration timeout;
+    private Duration timeout;
     private Optional<String> type = Optional.empty();
 
     StatOp(Memcake memcake, Duration timeout) {
@@ -30,6 +30,11 @@ public class StatOp {
 
     public StatOp type(String type) {
         this.type = Optional.ofNullable(type);
+        return this;
+    }
+
+    public StatOp timeout(Duration timeout) {
+        this.timeout = timeout;
         return this;
     }
 
