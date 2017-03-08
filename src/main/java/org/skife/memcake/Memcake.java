@@ -236,4 +236,16 @@ public class Memcake implements AutoCloseable {
     public NoOp noop() {
         return new NoOp(this, timeout);
     }
+
+    public PrependOp prepend(byte[] key, byte[] value) {
+        return new PrependOp(this, key, value, timeout);
+    }
+
+    public PrependOp prepend(String key, byte[] value) {
+        return prepend(key.getBytes(StandardCharsets.UTF_8), value);
+    }
+
+    public PrependOp prepend(String key, String value) {
+        return prepend(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
 }

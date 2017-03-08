@@ -390,11 +390,23 @@ public class MemcakeTest {
 
     @Test
     public void testNoOp() throws Exception {
-        CompletableFuture<Void> a =  mc.addq("joke", "haha").execute();
+        CompletableFuture<Void> a = mc.addq("joke", "haha").execute();
         CompletableFuture<Void> f = mc.noop().execute();
         f.get();
 
         // the noop forces completion of previous quiet commands
         assertThat(a).isCompleted();
+    }
+
+    @Test
+    public void testPrepend() throws Exception {
+        mc.add("hello", "rld").execute();
+        Version ver = mc.prepend("hello", "wo").execute().get();
+        Optional<Value> ov = mc.get("hello").execute().get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getVersion()).isEqualTo(ver);
+            assertThat(v.getValue()).isEqualTo("world".getBytes(StandardCharsets.UTF_8));
+        });
     }
 }
