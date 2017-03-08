@@ -481,6 +481,5 @@ public class MemcakeTest {
     public void testVersion() throws Exception {
         String version = mc.version().execute().get();
         assertThat(version).isNotEmpty();
-
     }
 }
