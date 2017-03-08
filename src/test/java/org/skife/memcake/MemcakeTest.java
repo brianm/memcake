@@ -30,6 +30,7 @@ import org.skife.memcake.testing.MemcachedRule;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -456,5 +457,23 @@ public class MemcakeTest {
         CompletableFuture<Void> cf = mc.replaceq("hello", "le monde").execute();
         mc.noop().execute().get();
         assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
+
+    @Test
+    public void testStat() throws Exception {
+        CompletableFuture<Map<String, String>> f = mc.stat().execute();
+        Map<String, String> stats = f.get();
+        assertThat(stats).containsKey("pid")
+                         .containsKey("total_items");
+    }
+
+    @Test
+    public void testStatOnlyOne() throws Exception {
+        mc.set("a", "1").execute();
+        mc.set("b", "1").execute();
+        mc.set("c", "1").execute();
+
+        Map<String, String> stats = mc.stat().type("items").execute().get();
+        assertThat(stats).containsEntry("items:1:number", "3");
     }
 }
