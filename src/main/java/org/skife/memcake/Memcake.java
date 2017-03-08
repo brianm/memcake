@@ -260,4 +260,16 @@ public class Memcake implements AutoCloseable {
     public PrependQuietOp prependq(String key, String value) {
         return prependq(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
     }
+
+    public ReplaceOp replace(byte[] key, byte[] value) {
+        return new ReplaceOp(this, key, value, timeout);
+    }
+
+    public ReplaceOp replace(String key, byte[] value) {
+        return replace(key.getBytes(StandardCharsets.UTF_8), value);
+    }
+
+    public ReplaceOp replace(String key, String value) {
+        return replace(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+    }
 }
