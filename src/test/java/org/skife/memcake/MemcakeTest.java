@@ -439,4 +439,22 @@ public class MemcakeTest {
         CompletableFuture<Version> cf = mc.replace("hello", "le monde").execute();
         assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
     }
+
+    @Test
+    public void testReplaceQSuccess() throws Exception {
+        mc.add("hello", "world").execute().get();
+        mc.replaceq("hello", "le monde").execute();
+        Optional<Value> ov = mc.get("hello").execute().get();
+        assertThat(ov).isPresent();
+        ov.ifPresent((v) -> {
+            assertThat(v.getValue()).isEqualTo("le monde".getBytes(StandardCharsets.UTF_8));
+        });
+    }
+
+    @Test
+    public void testReplaceQFail() throws Exception {
+        CompletableFuture<Void> cf = mc.replaceq("hello", "le monde").execute();
+        mc.noop().execute().get();
+        assertThatThrownBy(cf::get).hasCauseInstanceOf(StatusException.class);
+    }
 }
