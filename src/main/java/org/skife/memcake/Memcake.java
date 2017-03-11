@@ -23,10 +23,12 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -35,33 +37,25 @@ import java.util.function.Function;
 public class Memcake implements AutoCloseable {
     private static final ScheduledExecutorService cron = Executors.newScheduledThreadPool(2);
 
+    private final LinkedBlockingQueue<Consumer<Connection>> reconnectQueue = new LinkedBlockingQueue<>();
     private final AtomicReference<Connection> conn = new AtomicReference<>();
-
+    private final AtomicReference<ClientState> state = new AtomicReference<>(ClientState.DISCONNECTED);
     private final Function<InetSocketAddress, CompletableFuture<Connection>> connector;
     private final InetSocketAddress addr;
     private final Duration timeout;
 
     private Memcake(Function<InetSocketAddress, CompletableFuture<Connection>> connector,
                     InetSocketAddress addr,
-                    Duration timeout) throws ExecutionException, InterruptedException {
+                    Duration timeout) {
         this.connector = connector;
         this.addr = addr;
         this.timeout = timeout;
         connect();
     }
 
-    private void connect() throws ExecutionException, InterruptedException {
-        conn.set(connector.apply(addr).get());
-    }
-
-    @Override
-    public void close() throws Exception {
-
-    }
-
     public static Memcake create(Set<InetSocketAddress> servers,
                                  Duration defaultTimeout,
-                                 Function<InetSocketAddress, CompletableFuture<Connection>> connector) throws Exception {
+                                 Function<InetSocketAddress, CompletableFuture<Connection>> connector) {
         if (servers.size() != 1) {
             throw new IllegalArgumentException("in this cas of memcake, only one server is supported. Sorry.");
         }
@@ -69,7 +63,7 @@ public class Memcake implements AutoCloseable {
     }
 
     public static Memcake create(InetSocketAddress address,
-                                 Duration defaultTimeout) throws Exception {
+                                 Duration defaultTimeout) {
         return create(Collections.singleton(address), defaultTimeout, (addr) -> {
             try {
                 return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
@@ -79,8 +73,78 @@ public class Memcake implements AutoCloseable {
         });
     }
 
+    private void connect() {
+        switch (state.get()) {
+            case DISCONNECTED:
+                if (state.compareAndSet(ClientState.DISCONNECTED, ClientState.CONNECTING)) {
+                    // we won the connect race!
+                    CompletableFuture<Connection> f = connector.apply(addr);
+                    f.whenComplete((c, e) -> {
+                        if (e != null) {
+                            state.set(ClientState.DISCONNECTED);
+                            connect();
+                        }
+                        else {
+                            conn.set(c);
+                            c.addNetworkFailureListener(() -> {
+                                if (conn.compareAndSet(c, null)) {
+                                    c.close();
+                                    state.set(ClientState.DISCONNECTED);
+                                    connect();
+                                }
+                            });
+                            state.set(ClientState.CONNECTED);
+                            for (Consumer<Connection> consumer : reconnectQueue) {
+                                consumer.accept(c);
+                            }
+                        }
+                    });
+                }
+                break;
+            case CLOSED:
+                throw new IllegalStateException("Memcake has been closed, it may no longer be used.");
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        switch (state.get()) {
+            case CLOSED:
+                break;
+            case CONNECTED:
+                conn.get().close();
+                this.state.set(ClientState.DISCONNECTED);
+                break;
+            case CONNECTING:
+                break;
+            case DISCONNECTED:
+                break;
+        }
+    }
+
     public <T> CompletableFuture<T> call(byte[] key, Function<Connection, CompletableFuture<T>> f) {
-        return f.apply(conn.get());
+        switch (state.get()) {
+            case CLOSED:
+                throw new IllegalStateException("The memcake has been closed.");
+            case CONNECTED:
+                return f.apply(conn.get());
+            case DISCONNECTED:
+            case CONNECTING:
+                CompletableFuture<T> nf = new CompletableFuture<T>();
+                reconnectQueue.add((c) -> f.apply(c).whenComplete((r, e) -> {
+                    if (e != null) {
+                        nf.completeExceptionally(e);
+                    }
+                    else {
+                        nf.complete(r);
+                    }
+                }));
+                return nf;
+            default:
+                throw new IllegalStateException("unknown connection state: " + state);
+        }
     }
 
     // public API
@@ -291,5 +355,9 @@ public class Memcake implements AutoCloseable {
 
     public VersionOp version() {
         return new VersionOp(this, timeout);
+    }
+
+    private enum ClientState {
+        CONNECTED, CONNECTING, DISCONNECTED, CLOSED
     }
 }

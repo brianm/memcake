@@ -178,7 +178,7 @@ public class Connection implements AutoCloseable {
 
                 @Override
                 public void failed(Throwable exc, ByteBuffer attachment) {
-                    networkFailure(exc);
+                    networkFailure(new Exception("propagating network error", exc));
                 }
             });
         }

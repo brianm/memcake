@@ -30,22 +30,15 @@ public class MemcachedRule extends ExternalResource {
 
     private StartedProcess process;
     private int port;
-    private boolean local = false;
 
     @Override
-    protected void before() throws Throwable {
-
-        // first see if we have a memcached on localhost at 11211
-        if (localAvail() ) {
-            log.info("using localhost memcached");
-            local = true;
-            port = 11211;
-            return;
-        }
-
-        log.info("creating child memcached");
-
+    public void before() throws Throwable {
         this.port = findUnusedPort();
+        start();
+    }
+
+    public void start() throws IOException {
+        log.info("starting memcached on {}", port);
         this.process = new ProcessExecutor().command("memcached", "-p", port + "")
                                             .redirectOutput(Slf4jStream.of(log).asDebug())
                                             .redirectError(Slf4jStream.of(log).asInfo())
@@ -61,25 +54,23 @@ public class MemcachedRule extends ExternalResource {
                 // keep trying
             }
         }
-
     }
 
-    private boolean localAvail() throws IOException {
-        Socket sock = new Socket();
-        try {
-            sock.connect(new InetSocketAddress("localhost", 11211));
-            sock.close();
-            return true;
-        } catch (IOException e) {
-            return false;
+    public void stop() {
+        log.info("stopping memcached on {}", port);
+        Process p = process.getProcess().destroyForcibly();
+        while (p.isAlive()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new UnsupportedOperationException("Not Yet Implemented!");
+            }
         }
     }
 
     @Override
-    protected void after() {
-        if (!local) {
-            process.getProcess().destroyForcibly();
-        }
+    public void after() {
+        stop();
     }
 
     public InetSocketAddress getAddress() {

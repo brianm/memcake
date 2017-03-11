@@ -28,6 +28,7 @@ import org.skife.memcake.connection.Version;
 import org.skife.memcake.testing.Entry;
 import org.skife.memcake.testing.MemcachedRule;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
@@ -42,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitQuickcheck.class)
 public class MemcakeTest {
 
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration TIMEOUT = Duration.ofSeconds(1);
 
     @ClassRule
     public static final MemcachedRule memcached = new MemcachedRule();
@@ -481,5 +482,20 @@ public class MemcakeTest {
     public void testVersion() throws Exception {
         String version = mc.version().execute().get();
         assertThat(version).isNotEmpty();
+    }
+
+    @Test
+    public void testReconnect() throws Throwable {
+        MemcachedRule mr = new MemcachedRule();
+        mr.before();
+        Memcake mk = Memcake.create(mr.getAddress(), TIMEOUT);
+        mk.noop().execute().get();
+        mr.stop();
+
+        assertThatThrownBy(() -> mk.noop().execute().get()).hasRootCauseInstanceOf(IOException.class);
+
+        mr.start();
+
+        mk.noop().execute().get();
     }
 }
