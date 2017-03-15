@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Connection implements AutoCloseable {
 
-    // TODO put a limit on how deep this can grow!
+    // size is limited by maxRequestsInFlight
     private final BlockingDeque<Pair<Long, Command>> queuedRequests = new LinkedBlockingDeque<>();
     private final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
 
@@ -55,9 +55,10 @@ public class Connection implements AutoCloseable {
     // list of opaques for quiet operations which have been written but which have not had
     // a non-quiet command follow yet. Queue will be dumped into quietProxies once such
     // a command is sent.
+    //
     // made visible-ish for white box testing purposes only
-    // TODO consider putting a limit on how deep this can grow by forcing a NOOP
-    //      command once it hits that limit.
+    //
+    // size is limited by maxRequestsInFlight
     final BlockingQueue<Integer> queuedQuiets = new LinkedBlockingQueue<>();
 
     // tracks the collection of of quiet command opaques which were sent after the last non-quiet
@@ -68,7 +69,6 @@ public class Connection implements AutoCloseable {
     final ConcurrentMap<Integer, Collection<Integer>> quietProxies = new ConcurrentHashMap<>();
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
-
     private final AtomicInteger requestsInFlightCount = new AtomicInteger(0);
     private final AtomicBoolean open = new AtomicBoolean(true);
     private final AtomicBoolean failed = new AtomicBoolean(false);
