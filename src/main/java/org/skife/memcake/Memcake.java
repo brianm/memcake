@@ -34,7 +34,7 @@ import java.util.function.Function;
  * High level client for memcached
  */
 public class Memcake implements AutoCloseable {
-    private static final ScheduledExecutorService cron = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
 
     private final LinkedBlockingQueue<Consumer<Connection>> reconnectQueue = new LinkedBlockingQueue<>();
     private final AtomicReference<Connection> conn = new AtomicReference<>();
