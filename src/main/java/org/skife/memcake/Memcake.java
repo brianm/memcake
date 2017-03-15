@@ -62,10 +62,11 @@ public class Memcake implements AutoCloseable {
     }
 
     public static Memcake create(InetSocketAddress address,
+                                 int maxInFlightPerConnection,
                                  Duration defaultTimeout) {
         return create(Collections.singleton(address), defaultTimeout, (addr) -> {
             try {
-                return Connection.open(addr, AsynchronousSocketChannel.open(), cron);
+                return Connection.open(addr, maxInFlightPerConnection, AsynchronousSocketChannel.open(), cron);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }

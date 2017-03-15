@@ -60,6 +60,7 @@ public class ConnectionTest {
     @Before
     public void setUp() throws Exception {
         c = Connection.open(mc.getAddress(),
+                            1000,
                             AsynchronousSocketChannel.open(),
                             cron).get();
 
@@ -184,9 +185,9 @@ public class ConnectionTest {
 
     @Test
     public void testMultiGetBatchExample() throws Exception {
-        c.set(new byte[]{1}, 0, 0, new byte[]{1},Version.NONE, TIMEOUT).get();
-        c.set(new byte[]{3}, 0, 0, new byte[]{3},Version.NONE,TIMEOUT).get();
-        c.set(new byte[]{5}, 0, 0, new byte[]{5},Version.NONE, TIMEOUT).get();
+        c.set(new byte[]{1}, 0, 0, new byte[]{1}, Version.NONE, TIMEOUT).get();
+        c.set(new byte[]{3}, 0, 0, new byte[]{3}, Version.NONE, TIMEOUT).get();
+        c.set(new byte[]{5}, 0, 0, new byte[]{5}, Version.NONE, TIMEOUT).get();
 
         // a protocol-level multiget, collecting results in a map.
         final Map<Integer, byte[]> results = new HashMap<>();
@@ -455,5 +456,23 @@ public class ConnectionTest {
         Value v = c.get(key, TIMEOUT).get().get();
 
         assertThat(v.getValue()).isEqualTo(Bytes.concat(additional, initial));
+    }
+
+    /**
+     * Sadly this test may flake as it relies on memcached to NOT respond faster than the local
+     * process executes. We need a good mock memcached for testing :-)
+     */
+    @Test
+    public void testMaxRequestsInFlight() throws Exception {
+        Connection c = Connection.open(mc.getAddress(),
+                                       1,
+                                       AsynchronousSocketChannel.open(),
+                                       cron).get();
+        c.noop(TIMEOUT);
+        c.noop(TIMEOUT);
+        c.noop(TIMEOUT);
+
+        CompletableFuture<Void> f2 = c.noop(TIMEOUT);
+        assertThatThrownBy(f2::get).hasCauseInstanceOf(IllegalStateException.class);
     }
 }

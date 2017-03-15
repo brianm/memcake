@@ -52,7 +52,7 @@ public class MemcakeTest {
 
     @Before
     public void setUp() throws Exception {
-        this.mc = Memcake.create(memcached.getAddress(), TIMEOUT);
+        this.mc = Memcake.create(memcached.getAddress(), 1000, TIMEOUT);
         mc.flush().execute().get();
     }
 
@@ -488,7 +488,7 @@ public class MemcakeTest {
     public void testReconnect() throws Throwable {
         MemcachedRule mr = new MemcachedRule();
         mr.before();
-        Memcake mk = Memcake.create(mr.getAddress(), TIMEOUT);
+        Memcake mk = Memcake.create(mr.getAddress(), 1000, TIMEOUT);
         mk.noop().execute().get();
         mr.stop();
 

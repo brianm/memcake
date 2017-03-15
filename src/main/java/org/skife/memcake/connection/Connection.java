@@ -43,9 +43,7 @@ public class Connection implements AutoCloseable {
 
     // TODO put a limit on how deep this can grow!
     private final BlockingDeque<Pair<Long, Command>> queuedRequests = new LinkedBlockingDeque<>();
-
-    // made visible-ish for white box testing purposes only
-    final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, Responder> waiting = new ConcurrentHashMap<>();
 
     // opaque -> Response mapping for responses which have not been responded to yet.
     // Will generally cycle quickly, the only time it should accumulate is when a big
@@ -71,6 +69,7 @@ public class Connection implements AutoCloseable {
 
     private final AtomicInteger opaques = new AtomicInteger(Integer.MIN_VALUE);
 
+    private final AtomicInteger requestsInFlightCount = new AtomicInteger(0);
     private final AtomicBoolean open = new AtomicBoolean(true);
     private final AtomicBoolean failed = new AtomicBoolean(false);
     private final AtomicBoolean writing = new AtomicBoolean(false);
@@ -78,21 +77,25 @@ public class Connection implements AutoCloseable {
 
     private final AsynchronousByteChannel channel;
     private final ScheduledExecutorService timeoutExecutor;
+    private final int maxRequestsInFlight;
 
     Connection(AsynchronousByteChannel channel,
-               ScheduledExecutorService timeoutExecutor) {
+               ScheduledExecutorService timeoutExecutor,
+               int maxRequestsInFlight) {
         this.channel = channel;
         this.timeoutExecutor = timeoutExecutor;
+        this.maxRequestsInFlight = maxRequestsInFlight;
     }
 
     public static CompletableFuture<Connection> open(SocketAddress memcachedServerAddress,
+                                                     int maxRequestsInFlight,
                                                      AsynchronousSocketChannel channel,
                                                      ScheduledExecutorService timeoutExecutor) throws IOException {
         final CompletableFuture<Connection> cf = new CompletableFuture<>();
         channel.connect(memcachedServerAddress, channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
             @Override
             public void completed(Void result, AsynchronousSocketChannel channel) {
-                final Connection conn = new Connection(channel, timeoutExecutor);
+                final Connection conn = new Connection(channel, timeoutExecutor, maxRequestsInFlight);
                 conn.nextResponse(ByteBuffer.allocate(24));
                 cf.complete(conn);
             }
@@ -217,10 +220,14 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    private void checkState() {
+    private Optional<Exception> checkState() {
         if (!open.get()) {
-            throw new IllegalStateException("Connection is closed and no longer usable");
+            return Optional.of(new IllegalStateException("Connection is closed and no longer usable"));
         }
+        if (requestsInFlightCount.get() >= maxRequestsInFlight) {
+            return Optional.of(new IllegalStateException("Maximum concurrent requests already reached"));
+        }
+        return Optional.empty();
     }
 
     AsynchronousByteChannel getChannel() {
@@ -262,7 +269,13 @@ public class Connection implements AutoCloseable {
     }
 
     private <T> CompletableFuture<T> enqueue(Command command, CompletableFuture<T> result) {
-        checkState();
+        Optional<Exception> oe = checkState();
+        if (oe.isPresent()) {
+            result.completeExceptionally(oe.get());
+            return result;
+        }
+        requestsInFlightCount.incrementAndGet();
+        result.whenComplete((r, e) -> requestsInFlightCount.decrementAndGet());
         queuedRequests.add(Pair.of(System.nanoTime(), command));
         maybeWrite();
         return result;
