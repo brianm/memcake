@@ -11,8 +11,7 @@
 ~   See the License for the specific language governing permissions and
 ~   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -23,7 +22,7 @@
 
     <groupId>org.skife.memcake</groupId>
     <artifactId>memcake</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
     <licenses>
         <license>
@@ -43,7 +42,7 @@
         <connection>scm:git:git://github.com/brianm/memcake.git</connection>
         <developerConnection>scm:git:git@github.com:brianm/memcake.git</developerConnection>
         <url>https://github.com/brianm/memcake/</url>
-        <tag>HEAD</tag>
+        <tag>memcake-0.1</tag>
     </scm>
 
     <properties>
