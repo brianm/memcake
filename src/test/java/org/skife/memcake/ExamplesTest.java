@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static com.sun.javafx.applet.ExperimentalExtensions.get;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ExamplesTest {

@@ -13,8 +13,6 @@
  */
 package org.skife.memcake.testing;
 
-import com.google.common.base.MoreObjects;
-
 public class Entry {
     private final byte[] key;
     private final byte[] value;
