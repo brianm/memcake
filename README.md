@@ -26,7 +26,7 @@ Memcake uses evented IO via NIO. This works well on operating systems with good 
 <dependency>
     <groupId>org.skife.memcake</groupId>
     <artifactId>memcake</artifactId>
-    <version>${memcake.version}</version>
+    <version>0.1</version>
 </dependency>
 ```
 
