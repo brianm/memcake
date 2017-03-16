@@ -20,6 +20,16 @@ Memcake uses evented IO via NIO. This works well on operating systems with good 
 
 # Usage
 
+## Maven Dependency Block
+
+```xml
+<dependency>
+    <groupId>org.skife.memcake</groupId>
+    <artifactId>memcake</artifactId>
+    <version>${memcake.version}</version>
+</dependency>
+```
+
 ## Creating a Client
 
 The simplest way to create a client is just to pass the server to connect to (currently, it only supports one), the max number of in-flight requests to allow (to avoid unbounded queues), and a default timeout:
@@ -98,4 +108,4 @@ Memcached's binary protocol (and Memcake at this time) has no first class concep
 
 # License
 
-Licensed under [Apache License 2.0](https://github.com/brianm/memcake/blob/master/LICENSE). No runtime dependencies outside the standard library.
+Licensed under [Apache License 2.0](https://github.com/brianm/memcake/blob/master/LICENSE). No runtime dependencies outside the standard library. 
