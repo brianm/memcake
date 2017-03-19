@@ -22,11 +22,13 @@ Memcake uses evented IO via NIO. This works well on operating systems with good 
 
 ## Maven Dependency Block
 
+You can find the latest release in [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22memcake%22).
+
 ```xml
 <dependency>
     <groupId>org.skife.memcake</groupId>
     <artifactId>memcake</artifactId>
-    <version>0.1</version>
+    <version>${memcake.version}</version>
 </dependency>
 ```
 
