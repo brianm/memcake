@@ -12,7 +12,7 @@ Memcake requires Java 1.8, and has no other runtime dependencies.
 
 ## One Server
 
-As of the currently released version, Memcake only supports communicating with a single memcached server instance per client. The near-term plan is to support [libmemcached](http://libmemcached.org/libMemcached.html) compatible sharding in Memcake, nbut ithas not been finished yet.
+As of the currently released version, Memcake only supports communicating with a single memcached server instance per client. The near-term plan is to support [libmemcached](http://libmemcached.org/libMemcached.html) compatible sharding in Memcake, but it has not been finished yet.
 
 ## Evented IO and OS X
 
