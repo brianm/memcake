@@ -1,4 +1,4 @@
-[![Maven Central](https://img.shields.io/maven-central/v/org.apache.maven/apache-maven.svg)](https://search.maven.org/#search%7Cga%7C1%7Ca%3Amemcake%20g%3Aorg.skife.memcake)
+[![Maven Central](https://img.shields.io/maven-central/v/org.skife.memcake/memcake.svg)](https://search.maven.org/#search%7Cga%7C1%7Ca%3Amemcake%20g%3Aorg.skife.memcake)
 
 # Memcake
 
