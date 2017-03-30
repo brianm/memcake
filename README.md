@@ -1,3 +1,5 @@
+[![Maven Central](https://img.shields.io/maven-central/v/org.apache.maven/apache-maven.svg)](https://search.maven.org/#search%7Cga%7C1%7Ca%3Amemcake%20g%3Aorg.skife.memcake)
+
 # Memcake
 
 Memcake is a Java client for [Memcached](https://memcached.org/). It speaks only the [binary protocol](https://github.com/memcached/memcached/wiki/BinaryProtocolRevamped), and provides relatively low level access to memcached primitives. Basically, each command memcached exposes via the binary protocol is exposed 1:1 in memcake.
